@@ -210,10 +210,7 @@ export const fetchDashboardData = async (personaSegment: PersonaSegment | null):
   };
 };
 
-export const startDemo = async (demoId: string): Promise<{ success: boolean; message: string }> => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
+export const startDemo = async (demoId: string, inputData?: any): Promise<{ success: boolean; message: string; runId?: string }> => {
   const demo = mockDemos.find(d => d.id === demoId);
   if (!demo) {
     return { success: false, message: 'Demo not found' };
@@ -223,8 +220,93 @@ export const startDemo = async (demoId: string): Promise<{ success: boolean; mes
     return { success: false, message: 'This demo is coming soon!' };
   }
   
-  // In a real implementation, this would start the actual demo
-  console.log(`Starting demo: ${demo.title}`);
-  
-  return { success: true, message: `Demo "${demo.title}" started successfully!` };
+  try {
+    // Get auth token from Supabase
+    const { supabase } = await import('../lib/supabase');
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.access_token) {
+      return { success: false, message: 'Authentication required' };
+    }
+    
+    // Call the demo execution API
+    const response = await fetch(`/api/demos/${demoId}/run`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({
+        inputData: inputData || {},
+        options: {
+          timeout: 120,
+          priority: 'normal'
+        }
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      return { 
+        success: false, 
+        message: result.message || 'Failed to start demo' 
+      };
+    }
+    
+    return { 
+      success: true, 
+      message: result.message || 'Demo started successfully',
+      runId: result.id
+    };
+    
+  } catch (error) {
+    console.error('Demo execution error:', error);
+    return { 
+      success: false, 
+      message: 'Failed to start demo. Please try again.' 
+    };
+  }
+};
+
+export const getDemoRunStatus = async (runId: string): Promise<{ 
+  success: boolean; 
+  data?: any; 
+  message?: string 
+}> => {
+  try {
+    const { supabase } = await import('../lib/supabase');
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.access_token) {
+      return { success: false, message: 'Authentication required' };
+    }
+    
+    const response = await fetch(`/api/demos/${runId}/status`, {
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      return { 
+        success: false, 
+        message: result.message || 'Failed to get demo status' 
+      };
+    }
+    
+    return { 
+      success: true, 
+      data: result
+    };
+    
+  } catch (error) {
+    console.error('Status check error:', error);
+    return { 
+      success: false, 
+      message: 'Failed to check demo status' 
+    };
+  }
 };

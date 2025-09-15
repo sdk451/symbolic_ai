@@ -15,6 +15,8 @@ vi.mock('lucide-react', () => ({
   Lock: () => React.createElement('div', { 'data-testid': 'lock-icon' }),
   ArrowRight: () => React.createElement('div', { 'data-testid': 'arrow-right-icon' }),
   Clock: () => React.createElement('div', { 'data-testid': 'clock-icon' }),
+  Loader2: () => React.createElement('div', { 'data-testid': 'loader2-icon' }),
+  XCircle: () => React.createElement('div', { 'data-testid': 'x-circle-icon' }),
   
   // ActivityFeed icons
   Activity: () => React.createElement('div', { 'data-testid': 'activity-icon' }),

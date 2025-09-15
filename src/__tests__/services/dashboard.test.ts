@@ -8,6 +8,20 @@ import {
   mockDemos,
 } from '../../services/dashboard';
 
+// Mock Supabase
+vi.mock('../../lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: { access_token: 'test-token' } }
+      })
+    }
+  }
+}));
+
+// Mock fetch
+global.fetch = vi.fn();
+
 describe('Dashboard Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -187,10 +201,22 @@ describe('Dashboard Service', () => {
 
   describe('startDemo', () => {
     it('successfully starts a valid demo', async () => {
+      // Mock successful API response
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          id: 'test-run-id',
+          status: 'queued',
+          demoId: 'lead-qualification',
+          message: 'Demo execution started successfully'
+        })
+      } as Response);
+
       const result = await startDemo('lead-qualification');
       
       expect(result.success).toBe(true);
       expect(result.message).toContain('started successfully');
+      expect(result.runId).toBe('test-run-id');
     });
 
     it('fails to start a locked demo', async () => {
@@ -208,6 +234,23 @@ describe('Dashboard Service', () => {
     });
 
     it('simulates API delay', async () => {
+      // Mock fetch with a delay
+      vi.mocked(global.fetch).mockImplementation(() => 
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              ok: true,
+              json: () => Promise.resolve({
+                id: 'test-run-id',
+                status: 'queued',
+                demoId: 'lead-qualification',
+                message: 'Demo execution started successfully'
+              })
+            } as Response);
+          }, 300);
+        })
+      );
+
       const startTime = Date.now();
       await startDemo('lead-qualification');
       const endTime = Date.now();

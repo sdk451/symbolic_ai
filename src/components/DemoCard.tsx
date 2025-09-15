@@ -1,34 +1,60 @@
 import React from 'react';
-import { Play, Lock, ArrowRight, Clock } from 'lucide-react';
+import { Play, Lock, ArrowRight, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { DemoCard as DemoCardType } from '../services/dashboard';
+import { useDemoExecution } from '../hooks/useDemoExecution';
 
 interface DemoCardProps {
   demo: DemoCardType;
-  onStartDemo: (demoId: string) => Promise<{ success: boolean; message: string }>;
+  onStartDemo?: (demoId: string) => Promise<{ success: boolean; message: string }>;
   isLoading?: boolean;
 }
 
 const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = false }) => {
-  const [isStarting, setIsStarting] = React.useState(false);
+  const { 
+    status, 
+    isLoading: isExecuting, 
+    error, 
+    startDemo
+  } = useDemoExecution();
+  
+  const [isStartingDemo, setIsStartingDemo] = React.useState(false);
 
   const handleStartDemo = async () => {
-    if (demo.isLocked || isStarting) return;
+    if (demo.isLocked || isExecuting) return;
     
-    setIsStarting(true);
     try {
-      const result = await onStartDemo(demo.id);
+      const result = await startDemo(demo.id);
       if (result.success) {
-        // Show success message or navigate to demo
-        alert(result.message);
+        // Success message will be shown via status updates
+        console.log('Demo started:', result.message);
       } else {
         alert(result.message);
       }
-    } catch {
+    } catch (err) {
       alert('Failed to start demo. Please try again.');
-    } finally {
-      setIsStarting(false);
     }
   };
+
+  // Use the hook's startDemo if no onStartDemo prop is provided
+  const handleDemoStart = onStartDemo ? 
+    async () => {
+      if (demo.isLocked || isStartingDemo) return;
+      
+      setIsStartingDemo(true);
+      try {
+        const result = await onStartDemo(demo.id);
+        if (result.success) {
+          alert(result.message);
+        } else {
+          alert(result.message);
+        }
+      } catch (err) {
+        alert('Failed to start demo. Please try again.');
+      } finally {
+        setIsStartingDemo(false);
+      }
+    } : 
+    handleStartDemo;
 
   const getIconComponent = (iconName: string) => {
     // For now, return a simple div with the icon name
@@ -85,19 +111,56 @@ const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = fals
         </div>
       )}
 
+      {/* Demo Status Display */}
+      {status && status.demoId === demo.id && (
+        <div className="mb-4 p-3 rounded-lg border">
+          {status.status === 'queued' && (
+            <div className="flex items-center text-blue-400">
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <span className="text-sm">Demo queued for execution...</span>
+            </div>
+          )}
+          {status.status === 'running' && (
+            <div className="flex items-center text-yellow-400">
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <span className="text-sm">Demo is running...</span>
+            </div>
+          )}
+          {status.status === 'succeeded' && (
+            <div className="flex items-center text-green-400">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              <span className="text-sm">Demo completed successfully!</span>
+            </div>
+          )}
+          {status.status === 'failed' && (
+            <div className="flex items-center text-red-400">
+              <XCircle className="w-4 h-4 mr-2" />
+              <span className="text-sm">Demo failed: {status.errorMessage || 'Unknown error'}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      )}
+
       {/* Action Button */}
       <button
-        onClick={handleStartDemo}
-        disabled={demo.isLocked || isStarting || isLoading}
+        onClick={handleDemoStart}
+        disabled={demo.isLocked || isExecuting || isStartingDemo || isLoading}
         className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center ${
           demo.isLocked
             ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
             : `bg-gradient-to-r ${demo.color} text-white hover:shadow-lg transform group-hover:scale-105`
-        } ${isStarting ? 'opacity-50 cursor-not-allowed' : ''}`}
+        } ${(isExecuting || isStartingDemo) ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        {isStarting ? (
+        {(isExecuting || isStartingDemo) ? (
           <>
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
             Starting...
           </>
         ) : demo.isLocked ? (
