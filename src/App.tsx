@@ -1,4 +1,5 @@
 import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -10,9 +11,11 @@ import Courses from './components/Courses';
 import Solutions from './components/Solutions';
 import Footer from './components/Footer';
 import BackgroundAnimation from './components/BackgroundAnimation';
+import OnboardingPage from './pages/auth/onboarding';
+import Dashboard from './pages/Dashboard';
 
 function App() {
-  const { isAuthenticated, isEmailVerified, loading } = useAuth();
+  const { isAuthenticated, isEmailVerified, profile, loading } = useAuth();
 
   if (loading) {
     return (
@@ -29,20 +32,54 @@ function App() {
     <div className="min-h-screen bg-[#121212] text-white relative overflow-x-hidden">
       <BackgroundAnimation />
       <div className="relative z-10">
-        <Navbar />
-        {isAuthenticated && isEmailVerified ? ( 
-          <div id="demos" className="pt-16">
-            <Demos />
-          </div>
-        ) : (
-          <Hero />
-        )}
-        <Services />
-        <Solutions />
-        <Courses />
-        <Approach />
-        <Advisory />
-        <Footer />
+        <Routes>
+          {/* Dashboard route - only accessible to authenticated, email-verified users who completed onboarding */}
+          <Route 
+            path="/dashboard" 
+            element={
+              isAuthenticated && isEmailVerified && profile?.onboarding_completed ? (
+                <Dashboard />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            } 
+          />
+          
+          {/* Onboarding route - only accessible to authenticated, email-verified users who haven't completed onboarding */}
+          <Route 
+            path="/onboarding" 
+            element={
+              isAuthenticated && isEmailVerified && !profile?.onboarding_completed ? (
+                <OnboardingPage />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            } 
+          />
+          
+          {/* Main app route */}
+          <Route 
+            path="/*" 
+            element={
+              <div>
+                <Navbar />
+                {isAuthenticated && isEmailVerified && profile?.onboarding_completed ? ( 
+                  <div id="demos" className="pt-16">
+                    <Demos />
+                  </div>
+                ) : (
+                  <Hero />
+                )}
+                <Services />
+                <Solutions />
+                <Courses />
+                <Approach />
+                <Advisory />
+                <Footer />
+              </div>
+            } 
+          />
+        </Routes>
       </div>
     </div>
   );

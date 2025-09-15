@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Eye, EyeOff, User, Mail, Phone, Lock, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { authService, SignUpData, SignInData } from '../services/auth';
+import { useAuth } from '../hooks/useAuth';
 
 interface FormData {
   fullName: string;
@@ -20,6 +22,8 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
+  const navigate = useNavigate();
+  const { profile, isEmailVerified } = useAuth();
   const [mode, setMode] = useState<'signup' | 'login'>(initialMode);
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
@@ -183,7 +187,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         await authService.signUp(signUpData);
         
         setSubmitSuccess(true);
-        setSubmitMessage('Please check your email and click the verification link to complete your signup.');
+        setSubmitMessage('Account created! You can now sign in to complete your onboarding.');
         console.log('🎯 AuthModal: Signup successful');
       } else {
         const signInData: SignInData = {
@@ -197,9 +201,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         setSubmitSuccess(true);
         setSubmitMessage('Successfully logged in!');
         
-        // Close modal after successful login
+        // Close modal and redirect based on onboarding status
         setTimeout(() => {
           onClose();
+          // Check if user needs to complete onboarding
+          if (isEmailVerified && profile && !profile.onboarding_completed) {
+            navigate('/onboarding');
+          }
         }, 1500);
         console.log('🎯 AuthModal: Signin successful');
       }

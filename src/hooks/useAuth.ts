@@ -7,6 +7,10 @@ interface Profile {
   full_name: string;
   phone: string | null;
   email: string;
+  persona_segment: 'SMB' | 'SOLO' | 'EXEC' | 'FREELANCER' | 'ASPIRING' | null;
+  onboarding_completed: boolean;
+  organization_name: string | null;
+  organization_size: string | null;
   created_at: string;
   updated_at: string;
 }
