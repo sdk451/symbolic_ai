@@ -127,9 +127,9 @@ describe('App', () => {
 
   it('shows Demos component when authenticated and onboarding completed', () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: '1', email: 'test@example.com' } as any,
-      profile: { onboarding_completed: true } as any,
-      session: {} as any,
+      user: { id: '1', email: 'test@example.com' },
+      profile: { onboarding_completed: true },
+      session: {},
       isAuthenticated: true,
       isEmailVerified: true,
       loading: false

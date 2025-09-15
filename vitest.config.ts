@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    setupFiles: [],
+    setupFiles: ['./src/__tests__/setup.ts', './src/__tests__/vitest-setup.ts'],
     coverage: {
       reporter: ['text', 'json', 'html'],
       threshold: {
