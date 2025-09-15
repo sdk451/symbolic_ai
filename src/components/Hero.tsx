@@ -6,6 +6,7 @@ import AuthModal from './AuthModal';
 const Hero = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
   const { isAuthenticated, isEmailVerified } = useAuth();
 
   useEffect(() => {
@@ -13,10 +14,18 @@ const Hero = () => {
       setIsModalOpen(true);
     };
 
+    const handleOpenAuthModal = (event: CustomEvent) => {
+      console.log('🎯 Hero: Received openAuthModal event', event.detail);
+      setAuthMode(event.detail.mode || 'signup');
+      setIsAuthModalOpen(true);
+    };
+
     window.addEventListener('openConsultationModal', handleOpenModal);
+    window.addEventListener('openAuthModal', handleOpenAuthModal as EventListener);
     
     return () => {
       window.removeEventListener('openConsultationModal', handleOpenModal);
+      window.removeEventListener('openAuthModal', handleOpenAuthModal as EventListener);
     };
   }, []);
 
@@ -31,7 +40,8 @@ const Hero = () => {
       // User is signed up but not verified
       alert('Please check your email and click the verification link to access all features.');
     } else {
-      // User is not authenticated, open signup modal
+      // User is not authenticated, open signup modal in hero (centered)
+      setAuthMode('signup');
       setIsAuthModalOpen(true);
     }
   };
@@ -79,7 +89,7 @@ const Hero = () => {
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)}
-        initialMode="signup"
+        initialMode={authMode}
       />
     </section>
   );

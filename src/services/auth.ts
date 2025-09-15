@@ -14,23 +14,34 @@ export interface SignInData {
 
 export const authService = {
   async signUp({ email, password, fullName, phone }: SignUpData) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { // This data is passed to the handle_new_user trigger
-          full_name: fullName,
-          phone: phone,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+    console.log('🔐 AuthService: Starting signup process', { email, fullName, phone });
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { // This data is passed to the handle_new_user trigger
+            full_name: fullName,
+            phone: phone,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      console.log('🔐 AuthService: Supabase signup response', { data, error });
+
+      if (error) {
+        console.error('🔐 AuthService: Signup error', error);
+        throw new Error(error.message);
       }
-    });
 
-    if (error) {
-      throw new Error(error.message);
+      console.log('🔐 AuthService: Signup successful', data);
+      return data;
+    } catch (error) {
+      console.error('🔐 AuthService: Signup exception', error);
+      throw error;
     }
-
-    return data;
   },
 
   async signIn({ email, password }: SignInData) {

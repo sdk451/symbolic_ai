@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, Zap, LogOut } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/auth';
-import AuthModal from './AuthModal';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
   const { isAuthenticated, isEmailVerified, user, loading } = useAuth();
+
+  // Listen for global auth modal events
+  useEffect(() => {
+    const handleOpenAuthModal = (event: CustomEvent) => {
+      console.log('🎯 Navbar: Received openAuthModal event', event.detail);
+      // Trigger the Hero's AuthModal instead of the Navbar's
+      window.dispatchEvent(new CustomEvent('openAuthModal', { detail: event.detail }));
+    };
+
+    window.addEventListener('openAuthModal', handleOpenAuthModal as EventListener);
+    
+    return () => {
+      window.removeEventListener('openAuthModal', handleOpenAuthModal as EventListener);
+    };
+  }, []);
 
   const navLinks = ['Services', 'Solutions', 'Advisory', 'Courses', 'Approach'];
 
@@ -23,15 +35,14 @@ const Navbar = () => {
       // User is signed up but not verified
       alert('Please check your email and click the verification link to access all features.');
     } else {
-      // User is not authenticated, open signup modal
-      setAuthMode('signup');
-      setIsAuthModalOpen(true);
+      // User is not authenticated, trigger Hero's centered AuthModal
+      window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'signup' } }));
     }
   };
 
   const handleLoginClick = () => {
-    setAuthMode('login');
-    setIsAuthModalOpen(true);
+    // Trigger Hero's centered AuthModal
+    window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'login' } }));
   };
 
   const handleLogout = async () => {
@@ -188,11 +199,6 @@ const Navbar = () => {
         )}
       </div>
 
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)}
-        initialMode={authMode}
-      />
     </nav>
   );
 };

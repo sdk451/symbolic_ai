@@ -40,6 +40,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   // Reset form when modal opens or mode changes
   useEffect(() => {
     if (isOpen) {
+      console.log('🎯 AuthModal: Opening modal with mode:', initialMode);
       setFormData({
         fullName: '',
         phone: '',
@@ -57,7 +58,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         firstInputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, mode]);
+  }, [isOpen, mode, initialMode]);
 
   // Handle ESC key and focus trap
   useEffect(() => {
@@ -100,18 +101,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         if (value.length > 50) return 'Full name must be less than 50 characters';
         return '';
       
-      case 'phone':
+      case 'phone': {
         if (!value.trim()) return 'Phone number is required';
-        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-        const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
+        const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+        const cleanPhone = value.replace(/[\s\-()]/g, '');
         if (!phoneRegex.test(cleanPhone)) return 'Please enter a valid phone number';
         return '';
+      }
       
-      case 'email':
+      case 'email': {
         if (!value.trim()) return 'Email address is required';
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) return 'Please enter a valid email address';
         return '';
+      }
       
       case 'password':
         if (!value) return 'Password is required';
@@ -157,7 +160,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('🎯 AuthModal: Form submission started', { mode, formData });
+    
+    if (!validateForm()) {
+      console.log('🎯 AuthModal: Form validation failed');
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitMessage('');
@@ -171,16 +179,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           phone: formData.phone
         };
 
+        console.log('🎯 AuthModal: Calling authService.signUp', signUpData);
         await authService.signUp(signUpData);
         
         setSubmitSuccess(true);
         setSubmitMessage('Please check your email and click the verification link to complete your signup.');
+        console.log('🎯 AuthModal: Signup successful');
       } else {
         const signInData: SignInData = {
           email: formData.email,
           password: formData.password
         };
 
+        console.log('🎯 AuthModal: Calling authService.signIn', signInData);
         await authService.signIn(signInData);
         
         setSubmitSuccess(true);
@@ -190,8 +201,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         setTimeout(() => {
           onClose();
         }, 1500);
+        console.log('🎯 AuthModal: Signin successful');
       }
     } catch (error) {
+      console.error('🎯 AuthModal: Form submission error', error);
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       setSubmitMessage(errorMessage);
       setSubmitSuccess(false);
@@ -220,7 +233,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
   return (
     <div 
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 pt-20"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
       <div

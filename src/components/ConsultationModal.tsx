@@ -112,14 +112,14 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose }
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const validateField = (name: string, value: any): string => {
+  const validateField = (name: string, value: string): string => {
     switch (name) {
       case 'name':
         if (!value.trim()) return 'Full name is required';
         if (value.length > 100) return 'Name must be less than 100 characters';
         return '';
       
-      case 'email':
+      case 'email': {
         if (!value.trim()) return 'Email address is required';
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) return 'Please enter a valid email address';
@@ -129,13 +129,15 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose }
           return 'Business email preferred for faster response';
         }
         return '';
+      }
       
-      case 'phone':
+      case 'phone': {
         if (!value.trim()) return 'Phone number is required';
-        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-        const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
+        const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+        const cleanPhone = value.replace(/[\s\-()]/g, '');
         if (!phoneRegex.test(cleanPhone)) return 'Please enter a valid phone number';
         return '';
+      }
       
       case 'company_name':
         if (!value.trim()) return 'Company name is required';

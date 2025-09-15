@@ -1,14 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import App from '../../App'
+import { useAuth } from '../../hooks/useAuth'
 
 // Mock the useAuth hook
 vi.mock('../../hooks/useAuth', () => ({
-  useAuth: () => ({
-    isAuthenticated: false,
-    isEmailVerified: false,
-    loading: false
-  })
+  useAuth: vi.fn()
 }))
 
 // Mock the BackgroundAnimation component
@@ -17,6 +14,14 @@ vi.mock('../../components/BackgroundAnimation', () => ({
 }))
 
 describe('App', () => {
+  beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: false,
+      isEmailVerified: false,
+      loading: false
+    })
+  })
+
   it('renders the main application structure', () => {
     render(<App />)
     
@@ -29,7 +34,7 @@ describe('App', () => {
 
   it('shows loading state when loading is true', () => {
     // Mock loading state
-    vi.mocked(require('../../hooks/useAuth').useAuth).mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: false,
       isEmailVerified: false,
       loading: true

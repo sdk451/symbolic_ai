@@ -22,6 +22,7 @@ export const submitConsultationRequest = async (data: ConsultationRequest) => {
     }
 
     // Remove honeypot field before sending to database
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { company_size, ...cleanData } = data;
 
     const { data: result, error } = await supabase
