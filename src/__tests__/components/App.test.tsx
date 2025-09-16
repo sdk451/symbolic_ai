@@ -73,7 +73,8 @@ describe('App', () => {
       session: null,
       isAuthenticated: false,
       isEmailVerified: false,
-      loading: false
+      loading: false,
+      refreshProfile: vi.fn()
     })
   })
 
@@ -102,7 +103,8 @@ describe('App', () => {
       session: null,
       isAuthenticated: false,
       isEmailVerified: false,
-      loading: true
+      loading: true,
+      refreshProfile: vi.fn()
     })
 
     render(
@@ -156,7 +158,8 @@ describe('App', () => {
       } as any,
       isAuthenticated: true,
       isEmailVerified: true,
-      loading: false
+      loading: false,
+      refreshProfile: vi.fn()
     })
 
     render(

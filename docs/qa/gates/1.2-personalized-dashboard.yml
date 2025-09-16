@@ -4,13 +4,17 @@
 schema: 1
 story: "1.2"
 story_title: "Personalized Dashboard"
-gate: "PASS"
-status_reason: "All acceptance criteria met - personalized dashboard (Demos component) properly accessible to authenticated users with persona-aware content and consultation booking"
+gate: "FAIL"
+status_reason: "Story 1.2 is blocked by critical syntax error in Story 1.1 onboarding page. Users cannot complete onboarding, preventing access to personalized dashboard."
 reviewer: "Quinn (Test Architect)"
 updated: "2024-01-15T15:30:00Z"
 
 # Issues identified during review
 top_issues:
+  - id: "DEPENDENCY-001"
+    severity: high
+    finding: "Critical syntax error in Story 1.1 onboarding page prevents users from completing onboarding"
+    suggested_action: "Fix missing closing brace in src/pages/auth/onboarding.tsx line 78"
   - id: "TEST-001"
     severity: medium
     finding: "11 API tests failing due to Zod validation and Supabase query issues"
@@ -18,19 +22,20 @@ top_issues:
 
 # Risk assessment
 risk_summary:
-  totals: { critical: 0, high: 0, medium: 1, low: 0 }
+  totals: { critical: 0, high: 1, medium: 1, low: 0 }
   recommendations:
-    must_fix: []
+    must_fix:
+      - "Fix syntax error in Story 1.1 onboarding page"
     monitor:
       - "API test failures in netlify functions"
 
 # Evidence from review
 evidence:
   tests_reviewed: 73
-  risks_identified: 1
+  risks_identified: 2
   trace:
     ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]  # All ACs have implementation
-    ac_gaps: []  # No gaps - all acceptance criteria met
+    ac_gaps: []  # No gaps - all acceptance criteria met but blocked by dependency
 
 # NFR validation
 nfr_validation:
@@ -50,7 +55,8 @@ nfr_validation:
 # Recommendations
 recommendations:
   immediate:  # Must fix before production
-    []
+    - action: "Fix syntax error in Story 1.1 onboarding page"
+      refs: ["src/pages/auth/onboarding.tsx:78"]
   future:  # Can be addressed later
     - action: "Fix Zod validation issues in netlify functions"
       refs: ["netlify/functions/api.ts"]
@@ -60,8 +66,8 @@ recommendations:
       refs: ["src/hooks/useAuth.ts"]
 
 # Quality score calculation: 100 - (20 × FAILs) - (10 × CONCERNS)
-# 100 - (20 × 0) - (10 × 1) = 90
-quality_score: 90
+# 100 - (20 × 1) - (10 × 1) = 70
+quality_score: 70
 
 # Gate expires in 2 weeks
 expires: "2024-01-29T15:30:00Z"

@@ -201,4 +201,67 @@ NFR assessment: docs/qa/assessments/1.2-nfr-20240115.md
 
 ### Recommended Status
 
-**✓ Ready for Done** - All acceptance criteria are met. The personalized dashboard (Demos component) is properly accessible to authenticated users with persona-aware content, activity feeds, and consultation booking functionality.
+**✗ Changes Required - See unchecked items above**
+
+**CRITICAL**: Story 1.2 cannot function properly due to a blocking issue in Story 1.1. Users cannot complete onboarding due to a syntax error in `src/pages/auth/onboarding.tsx`, which prevents `profile?.onboarding_completed` from being set to `true`. This means authenticated users always see the Hero component instead of the Demos component.
+
+## QA Results - Updated Review
+
+### Review Date: 2025-01-15 (Updated)
+
+### Reviewed By: Quinn (Test Architect)
+
+### Code Quality Assessment - Updated
+
+**CRITICAL DEPENDENCY ISSUE IDENTIFIED**: Story 1.2 is blocked by a critical syntax error in Story 1.1's onboarding page. The personalized dashboard functionality is well-implemented, but users cannot access it because they cannot complete the onboarding flow.
+
+### Root Cause Analysis
+
+The issue is in `src/pages/auth/onboarding.tsx` line 78 - there's a missing closing brace for the `handlePersonaSelect` function. This prevents:
+1. Users from completing onboarding
+2. `profile?.onboarding_completed` from being set to `true`
+3. The App.tsx routing logic from showing the Demos component
+4. Users from accessing the personalized dashboard
+
+### Compliance Check - Updated
+
+- Coding Standards: ✗ **CRITICAL** - Syntax error in dependency (Story 1.1)
+- Project Structure: ✓ **PASS** - Files are properly organized
+- Testing Strategy: ✗ **FAIL** - 11 failing API tests, missing onboarding integration tests
+- All ACs Met: ✗ **FAIL** - Cannot access dashboard due to onboarding blocker
+
+### Improvements Checklist - Updated
+
+- [ ] **CRITICAL**: Fix syntax error in `src/pages/auth/onboarding.tsx` (Story 1.1 dependency)
+- [ ] **CRITICAL**: Add comprehensive tests for PersonaSelector component
+- [ ] **CRITICAL**: Add integration tests for complete onboarding flow
+- [ ] **HIGH**: Fix Zod validation issues in netlify functions (11 failing tests)
+- [ ] **HIGH**: Fix Supabase query chaining issues in API layer
+- [ ] **MEDIUM**: Add error boundary for dashboard route
+- [ ] **MEDIUM**: Add loading states for persona selection
+- [ ] **LOW**: Consider extracting persona options to configuration file
+
+### Security Review - Updated
+
+**No security concerns identified** - The dashboard properly uses authentication checks and profile-based filtering. Supabase integration follows security best practices.
+
+### Performance Considerations - Updated
+
+**Minor performance concerns** - The dashboard loads profile data on every auth state change, which could be optimized with caching. The current implementation is acceptable for MVP but should be optimized in future iterations.
+
+### Files Modified During Review - Updated
+
+**CRITICAL**: The following file has syntax errors that must be fixed before Story 1.2 can function:
+- `src/pages/auth/onboarding.tsx` - Missing closing brace for function (Story 1.1)
+
+### Gate Status - Updated
+
+Gate: **FAIL** → docs/qa/gates/1.2-personalized-dashboard.yml
+Risk profile: docs/qa/assessments/1.2-risk-20250115.md
+NFR assessment: docs/qa/assessments/1.2-nfr-20250115.md
+
+### Recommended Status - Updated
+
+**✗ Changes Required - See unchecked items above**
+
+**CRITICAL**: Story 1.2 is blocked by Story 1.1's onboarding syntax error. Once the onboarding issue is resolved, the personalized dashboard functionality is well-implemented and ready for use.

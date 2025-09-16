@@ -97,6 +97,51 @@ export function clearAuthStateCookie(): void {
 }
 
 /**
+ * Force clear authentication state cookie with multiple attempts
+ * This function tries different domain and path combinations to ensure the cookie is cleared
+ */
+export function forceClearAuthStateCookie(): void {
+  const cookieName = AUTH_COOKIE_NAME;
+  const expireDate = 'Thu, 01 Jan 1970 00:00:00 UTC';
+  
+  console.log('🍪 Force clearing auth cookie...');
+  
+  // Try multiple combinations to ensure cookie is cleared
+  const clearAttempts = [
+    `${cookieName}=;expires=${expireDate};path=/;SameSite=Lax`,
+    `${cookieName}=;expires=${expireDate};path=/;domain=localhost;SameSite=Lax`,
+    `${cookieName}=;expires=${expireDate};path=/;domain=.localhost;SameSite=Lax`,
+    `${cookieName}=;expires=${expireDate};path=/;domain=127.0.0.1;SameSite=Lax`,
+    `${cookieName}=;expires=${expireDate};path=/;domain=.127.0.0.1;SameSite=Lax`,
+    `${cookieName}=;expires=${expireDate};path=/`,
+    `${cookieName}=;expires=${expireDate};path=/;domain=localhost`,
+    `${cookieName}=;expires=${expireDate};path=/;domain=.localhost`
+  ];
+  
+  clearAttempts.forEach((attempt, index) => {
+    document.cookie = attempt;
+    console.log(`🍪 Clear attempt ${index + 1}: ${attempt}`);
+  });
+  
+  // Check if cookie still exists
+  setTimeout(() => {
+    const cookieValue = document.cookie
+      .split(';')
+      .find(row => row.trim().startsWith(`${cookieName}=`));
+    
+    if (!cookieValue) {
+      console.log('✅ Auth cookie successfully cleared!');
+      console.log('🔄 You can now test the "Get Started" flow again');
+    } else {
+      console.log('⚠️ Cookie might still exist:', cookieValue);
+      console.log('💡 Try refreshing the page or clearing browser cache');
+    }
+    
+    console.log('🍪 Current cookies:', document.cookie);
+  }, 100);
+}
+
+/**
  * Check if user has an account based on cookie
  */
 export function hasAccountFromCookie(): boolean {

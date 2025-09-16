@@ -1,0 +1,67 @@
+schema: 1
+story: "1.1"
+story_title: "User Authentication & Onboarding"
+gate: FAIL
+status_reason: "Critical syntax errors prevent compilation and break onboarding functionality"
+reviewer: "Quinn (Test Architect)"
+updated: "2025-01-15T16:50:00Z"
+
+waiver: { active: false }
+
+top_issues:
+  - id: "SYNTAX-001"
+    severity: high
+    finding: "Missing closing brace in handlePersonaSelect function (src/pages/auth/onboarding.tsx:78)"
+    suggested_action: "Fix syntax error to enable compilation"
+  - id: "TEST-001"
+    severity: medium
+    finding: "Missing comprehensive tests for PersonaSelector component"
+    suggested_action: "Add unit tests for persona selection logic"
+  - id: "TEST-002"
+    severity: medium
+    finding: "Missing integration tests for complete onboarding flow"
+    suggested_action: "Add end-to-end tests for signup → onboarding → dashboard flow"
+
+risk_summary:
+  totals: { critical: 1, high: 1, medium: 2, low: 0 }
+  recommendations:
+    must_fix: 
+      - "Fix syntax error in onboarding page"
+      - "Add missing test coverage"
+    monitor: []
+
+quality_score: 40
+expires: "2025-01-29T16:50:00Z"
+
+evidence:
+  tests_reviewed: 62
+  risks_identified: 4
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "Proper Supabase integration with email verification"
+  performance:
+    status: PASS
+    notes: "Efficient database queries with proper indexing"
+  reliability:
+    status: FAIL
+    notes: "Syntax errors prevent reliable execution"
+  maintainability:
+    status: CONCERNS
+    notes: "Missing test coverage impacts maintainability"
+
+recommendations:
+  immediate:
+    - action: "Fix missing closing brace in onboarding page"
+      refs: ["src/pages/auth/onboarding.tsx:78"]
+    - action: "Add comprehensive test coverage for PersonaSelector"
+      refs: ["src/components/PersonaSelector.tsx"]
+  future:
+    - action: "Add error boundary for onboarding page"
+      refs: ["src/pages/auth/onboarding.tsx"]
+    - action: "Consider extracting persona options to configuration"
+      refs: ["src/components/PersonaSelector.tsx:22-68"]

@@ -48,6 +48,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   useEffect(() => {
     if (isOpen) {
       console.log('🎯 AuthModal: Opening modal with mode:', initialMode);
+      setMode(initialMode); // Update mode when initialMode changes
       setFormData({
         fullName: '',
         phone: '',
@@ -65,7 +66,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         firstInputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, mode, initialMode]);
+  }, [isOpen, initialMode]);
 
   // Handle ESC key and focus trap
   useEffect(() => {
@@ -147,13 +148,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       return;
     }
 
-    // Use cookie-based checking instead of database query for faster response
-    const exists = isEmailInCookie(email);
-    setEmailExists(exists);
-    
-    // If user exists and we're in signup mode, suggest switching to login
-    if (exists && mode === 'signup') {
-      console.log('🎯 AuthModal: User exists (from cookie), suggesting login mode');
+    // Only check email existence in signup mode
+    if (mode === 'signup') {
+      // Use cookie-based checking instead of database query for faster response
+      const exists = isEmailInCookie(email);
+      setEmailExists(exists);
+      
+      // If user exists and we're in signup mode, suggest switching to login
+      if (exists) {
+        console.log('🎯 AuthModal: User exists (from cookie), suggesting login mode');
+      }
+    } else {
+      // In login mode, don't check email existence
+      setEmailExists(null);
     }
   };
 
@@ -165,8 +172,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     const error = validateField(name, value);
     setErrors(prev => ({ ...prev, [name]: error }));
 
-    // Check email existence instantly (cookie-based)
-    if (name === 'email') {
+    // Check email existence instantly (cookie-based) - only in signup mode
+    if (name === 'email' && mode === 'signup') {
       checkEmailExists(value);
     }
   };
@@ -454,22 +461,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                         className="ml-1 underline hover:text-orange-300 transition-colors"
                       >
                         Log in instead?
-                      </button>
-                    </p>
-                  )}
-                  {!errors.email && emailExists === false && mode === 'login' && formData.email && (
-                    <p className="mt-1 text-sm text-blue-400 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      This email is not registered. 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMode('signup');
-                          setEmailExists(null);
-                        }}
-                        className="ml-1 underline hover:text-blue-300 transition-colors"
-                      >
-                        Sign up instead?
                       </button>
                     </p>
                   )}

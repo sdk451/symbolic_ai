@@ -23,7 +23,7 @@ const personaOptions: PersonaOption[] = [
   {
     id: 'SMB',
     title: 'Small/Medium Business',
-    description: 'Growing business looking to scale operations and efficiency',
+    description: 'Growing business looking to adopt AI solutions to scale operations and efficiency',
     icon: <Building2 className="w-6 h-6" />,
     color: 'text-blue-400',
     bgColor: 'bg-blue-500/10',
@@ -40,7 +40,7 @@ const personaOptions: PersonaOption[] = [
   },
   {
     id: 'EXEC',
-    title: 'Enterprise Executive',
+    title: 'Executive Leader',
     description: 'Senior leader in large organization driving strategic initiatives',
     icon: <Crown className="w-6 h-6" />,
     color: 'text-purple-400',
@@ -58,8 +58,8 @@ const personaOptions: PersonaOption[] = [
   },
   {
     id: 'ASPIRING',
-    title: 'Aspiring Professional',
-    description: 'Learning and building skills to advance your career',
+    title: 'Aspiring Leader',
+    description: 'Professional keen to develop AI skills to advance your career',
     icon: <GraduationCap className="w-6 h-6" />,
     color: 'text-cyan-400',
     bgColor: 'bg-cyan-500/10',
@@ -124,12 +124,14 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ onSelect, isLoading =
                   : 'bg-[#121212] border-gray-600 hover:border-gray-500'
               } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              <div className={`${persona.color} mb-3`}>
-                {persona.icon}
+              <div className="flex items-center mb-3">
+                <div className={`${persona.color} mr-3`}>
+                  {persona.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-white">
+                  {persona.title}
+                </h3>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
-                {persona.title}
-              </h3>
               <p className="text-gray-400 text-sm">
                 {persona.description}
               </p>

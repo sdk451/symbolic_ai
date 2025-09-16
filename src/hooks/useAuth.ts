@@ -22,6 +22,7 @@ interface AuthState {
   loading: boolean;
   isAuthenticated: boolean;
   isEmailVerified: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 export const useAuth = (): AuthState => {
@@ -88,12 +89,19 @@ export const useAuth = (): AuthState => {
   // Check email verification status properly
   const isEmailVerified = user?.email_confirmed_at != null;
 
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  };
+
   return {
     user,
     profile,
     session,
     loading,
     isAuthenticated,
-    isEmailVerified
+    isEmailVerified,
+    refreshProfile
   };
 };

@@ -18,6 +18,7 @@
     "test:watch": "vitest --watch",
     "type-check": "tsc --noEmit",
     "setup": "npm install && npm run type-check",
+    "clear-auth-cookie": "node scripts/clear-auth-cookie.js",
     "clean": "rm -rf dist node_modules/.vite",
     "start": "npm run dev"
   },

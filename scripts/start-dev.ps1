@@ -45,17 +45,17 @@ Write-Host ""
 Write-Host "Starting development servers..." -ForegroundColor Yellow
 Write-Host ""
 
-# Start the full development environment
-Write-Host "Starting Vite dev server and Netlify Functions..." -ForegroundColor Cyan
+# Start the basic development environment (Vite only)
+Write-Host "Starting Vite dev server..." -ForegroundColor Cyan
 Write-Host "Frontend will be available at: http://localhost:3000" -ForegroundColor White
-Write-Host "Netlify Functions will be available at: http://localhost:8888" -ForegroundColor White
 Write-Host "Supabase Studio will be available at: http://localhost:54323" -ForegroundColor White
 Write-Host ""
-Write-Host "Press Ctrl+C to stop all services" -ForegroundColor Yellow
+Write-Host "Note: Netlify Functions are disabled for now" -ForegroundColor Yellow
+Write-Host "Press Ctrl+C to stop the server" -ForegroundColor Yellow
 Write-Host ""
 
-# Start the development servers
-Write-Host "Starting development servers..." -ForegroundColor Green
+# Start the development server
+Write-Host "Starting Vite development server..." -ForegroundColor Green
 
 # Check if npm is available
 if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
@@ -69,5 +69,5 @@ if (-not (Test-Path "package.json")) {
     exit 1
 }
 
-# Start the development servers
-npm run dev:full
+# Start the Vite development server only
+npm run dev

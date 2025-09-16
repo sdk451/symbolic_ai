@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Auth Cookie - Symbolic AI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #121212;
+            color: #ffffff;
+        }
+        .container {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        h1 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+        }
+        button {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: all 0.2s;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        .success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        .info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+        }
+        code {
+            background: #2a2a2a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍪 Clear Auth Cookie</h1>
+        <p>This tool helps you clear the authentication cookie for testing purposes.</p>
+        
+        <button onclick="clearAuthCookie()">Clear Auth Cookie</button>
+        <button onclick="forceClearAuthCookie()">Force Clear Auth Cookie</button>
+        <button onclick="checkCookieStatus()">Check Cookie Status</button>
+        <button onclick="showInstructions()">Show Instructions</button>
+        
+        <div id="status"></div>
+        
+        <div id="instructions" style="display: none;">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Click "Clear Auth Cookie" to remove the cookie</li>
+                <li>Go back to your Symbolic AI app</li>
+                <li>The "Log In" button should now show "Get Started"</li>
+                <li>You can test the signup flow again</li>
+            </ol>
+            
+            <h3>🔧 Manual Method:</h3>
+            <p>You can also clear the cookie manually in your browser:</p>
+            <ol>
+                <li>Open Developer Tools (F12)</li>
+                <li>Go to Application/Storage tab</li>
+                <li>Find Cookies → localhost:3003</li>
+                <li>Delete the <code>symbolic_ai_auth_state</code> cookie</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const AUTH_COOKIE_NAME = 'symbolic_ai_auth_state';
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function clearAuthCookie() {
+            try {
+                // Clear the cookie by setting it to expire in the past
+                // Use the same path and SameSite settings as the original cookie
+                document.cookie = `${AUTH_COOKIE_NAME}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Lax`;
+                
+                // Also try clearing with different domain variations
+                document.cookie = `${AUTH_COOKIE_NAME}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=localhost;SameSite=Lax`;
+                document.cookie = `${AUTH_COOKIE_NAME}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=.localhost;SameSite=Lax`;
+                
+                // Wait a moment for the cookie to be cleared
+                setTimeout(() => {
+                    // Verify the cookie is cleared
+                    const cookieValue = document.cookie
+                        .split(';')
+                        .find(row => row.trim().startsWith(`${AUTH_COOKIE_NAME}=`));
+                    
+                    if (!cookieValue) {
+                        showStatus('✅ Auth cookie cleared successfully!<br>🔄 You can now test the "Get Started" flow again', 'success');
+                    } else {
+                        showStatus(`⚠️ Cookie still exists: ${cookieValue}<br>Try refreshing the page or clearing browser cache.`, 'error');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                showStatus(`❌ Error clearing auth cookie: ${error.message}`, 'error');
+            }
+        }
+        
+        function checkCookieStatus() {
+            const cookieValue = document.cookie
+                .split(';')
+                .find(row => row.trim().startsWith(`${AUTH_COOKIE_NAME}=`));
+            
+            if (cookieValue) {
+                try {
+                    const cookieData = JSON.parse(decodeURIComponent(cookieValue.split('=')[1]));
+                    showStatus(`🍪 Cookie found:<br>• Has Account: ${cookieData.hasAccount}<br>• Email: ${cookieData.email || 'N/A'}<br>• Timestamp: ${new Date(cookieData.timestamp).toLocaleString()}`, 'info');
+                } catch (e) {
+                    showStatus(`🍪 Cookie found but couldn't parse data: ${cookieValue}`, 'info');
+                }
+            } else {
+                showStatus('✅ No auth cookie found - you can test the signup flow', 'success');
+            }
+        }
+        
+        function forceClearAuthCookie() {
+            try {
+                const cookieName = 'symbolic_ai_auth_state';
+                const expireDate = 'Thu, 01 Jan 1970 00:00:00 UTC';
+                
+                showStatus('🍪 Force clearing auth cookie with multiple attempts...', 'info');
+                
+                // Try multiple combinations to ensure cookie is cleared
+                const clearAttempts = [
+                    `${cookieName}=;expires=${expireDate};path=/;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=localhost;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.localhost;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=127.0.0.1;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.127.0.0.1;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=localhost`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.localhost`
+                ];
+                
+                clearAttempts.forEach((attempt, index) => {
+                    document.cookie = attempt;
+                    console.log(`🍪 Clear attempt ${index + 1}: ${attempt}`);
+                });
+                
+                // Check if cookie still exists
+                setTimeout(() => {
+                    const cookieValue = document.cookie
+                        .split(';')
+                        .find(row => row.trim().startsWith(`${cookieName}=`));
+                    
+                    if (!cookieValue) {
+                        showStatus('✅ Auth cookie successfully cleared!<br>🔄 You can now test the "Get Started" flow again', 'success');
+                    } else {
+                        showStatus(`⚠️ Cookie might still exist: ${cookieValue}<br>💡 Try refreshing the page or clearing browser cache`, 'error');
+                    }
+                }, 200);
+                
+            } catch (error) {
+                showStatus(`❌ Error force clearing auth cookie: ${error.message}`, 'error');
+            }
+        }
+        
+        function showInstructions() {
+            const instructionsDiv = document.getElementById('instructions');
+            instructionsDiv.style.display = instructionsDiv.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Check cookie status on page load
+        window.onload = function() {
+            checkCookieStatus();
+        };
+    </script>
+</body>
+</html>

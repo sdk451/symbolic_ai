@@ -5,7 +5,7 @@ import PersonaSelector, { PersonaSegment } from '../../components/PersonaSelecto
 import { authService } from '../../services/auth';
 
 const OnboardingPage: React.FC = () => {
-  const { user, profile, isEmailVerified, loading } = useAuth();
+  const { user, profile, isEmailVerified, loading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>('');
@@ -30,9 +30,9 @@ const OnboardingPage: React.FC = () => {
       return;
     }
 
-    // If already completed onboarding, redirect to dashboard
+    // If already completed onboarding, redirect to main route (which shows dashboard)
     if (profile?.onboarding_completed) {
-      navigate('/dashboard');
+      navigate('/');
       return;
     }
   }, [user, profile, isEmailVerified, loading, navigate]);
@@ -62,8 +62,14 @@ const OnboardingPage: React.FC = () => {
 
       console.log('🎯 Onboarding: Persona selection completed successfully');
       
-      // Redirect to dashboard after successful onboarding
-      navigate('/dashboard', {
+      // Refresh the profile data to ensure the latest state is loaded
+      await refreshProfile();
+      
+      console.log('🎯 Onboarding: Profile refreshed, navigating to dashboard');
+      
+      // Redirect to main route - it will automatically show the dashboard
+      // when the user is authenticated, email verified, and onboarding completed
+      navigate('/', {
         state: { 
           message: 'Welcome! Your onboarding is complete.' 
         }

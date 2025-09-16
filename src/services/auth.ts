@@ -154,7 +154,21 @@ export const authService = {
       }
 
       console.log('🔐 AuthService: Onboarding completed successfully');
-      return { success: true };
+      
+      // Fetch the updated profile to return to the caller
+      const { data: updatedProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('🔐 AuthService: Error fetching updated profile', fetchError);
+        // Still return success since the update worked
+        return { success: true };
+      }
+
+      return { success: true, profile: updatedProfile };
     } catch (error) {
       console.error('🔐 AuthService: Onboarding completion exception', error);
       throw error;
