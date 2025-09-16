@@ -1,0 +1,29 @@
+[build]
+  # Directory to change to before starting a build
+  base = "."
+  
+  # Directory that contains the deploy-ready HTML files and assets
+  publish = "dist"
+  
+  # Default build command
+  command = "npm run build"
+
+[dev]
+  # Port for the framework server
+  targetPort = 3000
+  
+  # Port for the Netlify Dev server
+  port = 8888
+  
+  # Auto-install dependencies
+  autoLaunch = true
+
+[[redirects]]
+  # Handle client-side routing
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  # Directory for Netlify Functions
+  directory = "netlify/functions"

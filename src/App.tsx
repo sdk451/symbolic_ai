@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import Navbar from './components/Navbar';
@@ -12,6 +11,8 @@ import Solutions from './components/Solutions';
 import Footer from './components/Footer';
 import BackgroundAnimation from './components/BackgroundAnimation';
 import OnboardingPage from './pages/auth/onboarding';
+import AuthCallback from './pages/auth/callback';
+import ResetPassword from './pages/auth/reset-password';
 import Dashboard from './pages/Dashboard';
 
 function App() {
@@ -45,6 +46,18 @@ function App() {
             } 
           />
           
+          {/* Auth callback route - handles email verification redirects */}
+          <Route 
+            path="/auth/callback" 
+            element={<AuthCallback />} 
+          />
+          
+          {/* Password reset route - handles password reset from email links */}
+          <Route 
+            path="/auth/reset-password" 
+            element={<ResetPassword />} 
+          />
+          
           {/* Onboarding route - only accessible to authenticated, email-verified users who haven't completed onboarding */}
           <Route 
             path="/onboarding" 
@@ -59,11 +72,11 @@ function App() {
           
           {/* Main app route */}
           <Route 
-            path="/*" 
+            path="/" 
             element={
               <div>
                 <Navbar />
-                {isAuthenticated && isEmailVerified && profile?.onboarding_completed ? ( 
+                {isAuthenticated && isEmailVerified && profile?.onboarding_completed ? (
                   <div id="demos" className="pt-16">
                     <Demos />
                   </div>

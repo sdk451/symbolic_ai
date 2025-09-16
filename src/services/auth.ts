@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { clearAuthStateCookie } from '../lib/cookies';
 
 export interface SignUpData {
   email: string;
@@ -42,6 +43,13 @@ export const authService = {
         throw new Error(error.message);
       }
 
+      // Log signup result for debugging
+      if (data.user && !data.user.email_confirmed_at) {
+        console.log('🔐 AuthService: User created, email verification required');
+      } else if (data.user && data.user.email_confirmed_at) {
+        console.log('🔐 AuthService: User created and email already verified');
+      }
+
       console.log('🔐 AuthService: Signup successful', data);
       return data;
     } catch (error) {
@@ -69,6 +77,9 @@ export const authService = {
     if (error) {
       throw new Error(error.message);
     }
+    
+    // Clear the auth state cookie on logout
+    clearAuthStateCookie();
   },
 
   async resendVerification(email: string) {
@@ -92,6 +103,27 @@ export const authService = {
 
     if (error) {
       throw new Error(error.message);
+    }
+  },
+
+  async checkUserExists(email: string): Promise<boolean> {
+    try {
+      // Check if user exists in profiles table
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+        console.error('Error checking user existence:', error);
+        return false;
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('Error checking user existence:', error);
+      return false;
     }
   },
 

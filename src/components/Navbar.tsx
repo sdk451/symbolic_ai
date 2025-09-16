@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, Zap, LogOut } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/auth';
+import { hasAccountFromCookie } from '../lib/cookies';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,26 +25,7 @@ const Navbar = () => {
 
   const navLinks = ['Services', 'Solutions', 'Advisory', 'Courses', 'Approach'];
 
-  const handleGetStartedClick = () => {
-    if (isAuthenticated && isEmailVerified) {
-      // User is fully authenticated, scroll to demos or handle as needed
-      const demosSection = document.getElementById('demos');
-      if (demosSection) {
-        demosSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else if (isAuthenticated && !isEmailVerified) {
-      // User is signed up but not verified
-      alert('Please check your email and click the verification link to access all features.');
-    } else {
-      // User is not authenticated, trigger Hero's centered AuthModal
-      window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'signup' } }));
-    }
-  };
 
-  const handleLoginClick = () => {
-    // Trigger Hero's centered AuthModal
-    window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'login' } }));
-  };
 
   const handleLogout = async () => {
     try {
@@ -57,7 +39,28 @@ const Navbar = () => {
     if (loading) return 'Loading...';
     if (isAuthenticated && isEmailVerified) return 'Logout';
     if (isAuthenticated && !isEmailVerified) return 'Verify Email';
-    return 'Get Started';
+    
+    // Check cookie to see if user has an account
+    const hasAccount = hasAccountFromCookie();
+    return hasAccount ? 'Log In' : 'Get Started';
+  };
+
+  const getAuthButtonAction = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isAuthenticated && isEmailVerified) {
+      // User is fully authenticated, show logout option
+      handleLogout();
+    } else if (isAuthenticated && !isEmailVerified) {
+      // User is signed up but not verified
+      alert('Please check your email and click the verification link to access all features.');
+    } else {
+      // User is not authenticated, check cookie to determine mode
+      const hasAccount = hasAccountFromCookie();
+      const mode = hasAccount ? 'login' : 'signup';
+      window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode } }));
+    }
   };
 
   return (
@@ -91,12 +94,6 @@ const Navbar = () => {
                   Welcome, {user?.user_metadata?.full_name || user?.email}
                 </span>
                 <button
-                  onClick={handleGetStartedClick}
-                  className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105"
-                >
-                  {getAuthButtonText()}
-                </button>
-                <button
                   onClick={handleLogout}
                   className="text-gray-300 hover:text-orange-300 transition-colors duration-200 font-medium flex items-center"
                 >
@@ -107,7 +104,7 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={handleGetStartedClick}
+                  onClick={(e) => getAuthButtonAction(e)}
                   className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105"
                   disabled={loading}
                 >
@@ -151,15 +148,6 @@ const Navbar = () => {
                   </div>
                   <button
                     onClick={() => {
-                      handleGetStartedClick();
-                      setIsOpen(false);
-                    }}
-                    className="w-full mt-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    {getAuthButtonText()}
-                  </button>
-                  <button
-                    onClick={() => {
                       handleLogout();
                       setIsOpen(false);
                     }}
@@ -172,8 +160,8 @@ const Navbar = () => {
               ) : (
                 <div className="pt-4 border-t border-gray-700">
                   <button
-                    onClick={() => {
-                      handleGetStartedClick();
+                    onClick={(e) => {
+                      getAuthButtonAction(e);
                       setIsOpen(false);
                     }}
                     className="w-full mt-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-lg font-semibold"
@@ -181,17 +169,6 @@ const Navbar = () => {
                   >
                     {getAuthButtonText()}
                   </button>
-                  {!isAuthenticated && (
-                    <button
-                      onClick={() => {
-                        handleLoginClick();
-                        setIsOpen(false);
-                      }}
-                      className="w-full mt-2 text-gray-300 hover:text-orange-400 transition-colors duration-200 px-3 py-2"
-                    >
-                      Log In
-                    </button>
-                  )}
                 </div>
               )}
             </div>

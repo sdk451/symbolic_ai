@@ -48,7 +48,7 @@ export const useAuth = (): AuthState => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -85,6 +85,7 @@ export const useAuth = (): AuthState => {
   };
 
   const isAuthenticated = !!user && !!session;
+  // Check email verification status properly
   const isEmailVerified = user?.email_confirmed_at != null;
 
   return {

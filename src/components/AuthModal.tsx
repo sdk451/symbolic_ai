@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Eye, EyeOff, User, Mail, Phone, Lock, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { authService, SignUpData, SignInData } from '../services/auth';
 import { useAuth } from '../hooks/useAuth';
+import { setAuthStateCookie, isEmailInCookie } from '../lib/cookies';
 
 interface FormData {
   fullName: string;
@@ -37,9 +38,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [emailExists, setEmailExists] = useState<boolean | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const emailCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reset form when modal opens or mode changes
   useEffect(() => {
@@ -94,7 +97,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (emailCheckTimeoutRef.current) {
+        clearTimeout(emailCheckTimeoutRef.current);
+      }
+    };
   }, [isOpen, onClose]);
 
   const validateField = (name: string, value: string): string => {
@@ -133,6 +141,22 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     }
   };
 
+  const checkEmailExists = (email: string) => {
+    if (!email || !email.includes('@')) {
+      setEmailExists(null);
+      return;
+    }
+
+    // Use cookie-based checking instead of database query for faster response
+    const exists = isEmailInCookie(email);
+    setEmailExists(exists);
+    
+    // If user exists and we're in signup mode, suggest switching to login
+    if (exists && mode === 'signup') {
+      console.log('🎯 AuthModal: User exists (from cookie), suggesting login mode');
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -140,6 +164,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     // Real-time validation
     const error = validateField(name, value);
     setErrors(prev => ({ ...prev, [name]: error }));
+
+    // Check email existence instantly (cookie-based)
+    if (name === 'email') {
+      checkEmailExists(value);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -184,11 +213,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         };
 
         console.log('🎯 AuthModal: Calling authService.signUp', signUpData);
-        await authService.signUp(signUpData);
+        const signupResult = await authService.signUp(signUpData);
         
-        setSubmitSuccess(true);
-        setSubmitMessage('Account created! You can now sign in to complete your onboarding.');
-        console.log('🎯 AuthModal: Signup successful');
+        // Set cookie to remember user has an account
+        setAuthStateCookie(true, formData.email);
+        
+        // Check if email verification is required
+        if (signupResult.user && !signupResult.user.email_confirmed_at) {
+          setSubmitSuccess(true);
+          setSubmitMessage('Account created! Please check your email and click the verification link to complete your registration.');
+          console.log('🎯 AuthModal: Signup successful, email verification required');
+        } else {
+          setSubmitSuccess(true);
+          setSubmitMessage('Account created! Redirecting to onboarding...');
+          console.log('🎯 AuthModal: Signup successful');
+          
+          // Redirect to onboarding after successful signup
+          setTimeout(() => {
+            onClose();
+            navigate('/onboarding');
+          }, 1500);
+        }
       } else {
         const signInData: SignInData = {
           email: formData.email,
@@ -197,6 +242,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
         console.log('🎯 AuthModal: Calling authService.signIn', signInData);
         await authService.signIn(signInData);
+        
+        // Set cookie to remember user has an account
+        setAuthStateCookie(true, formData.email);
         
         setSubmitSuccess(true);
         setSubmitMessage('Successfully logged in!');
@@ -273,12 +321,33 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
               </h3>
               <p className="text-gray-300 mb-6">{submitMessage}</p>
               {mode === 'signup' && (
-                <button
-                  onClick={onClose}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200"
-                >
-                  Got it!
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={onClose}
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200"
+                  >
+                    Got it!
+                  </button>
+                  {submitMessage.includes('verification link') && (
+                    <div className="text-center">
+                      <p className="text-sm text-gray-400 mb-2">Didn't receive the email?</p>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await authService.resendVerification(formData.email);
+                            setSubmitMessage('Verification email resent! Please check your inbox.');
+                          } catch (error) {
+                            setSubmitMessage(error instanceof Error ? error.message : 'Failed to resend verification email');
+                            setSubmitSuccess(false);
+                          }
+                        }}
+                        className="text-sm text-orange-400 hover:text-orange-300 transition-colors duration-200 underline"
+                      >
+                        Resend verification email
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ) : (
@@ -372,6 +441,38 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       {errors.email}
                     </p>
                   )}
+                  {!errors.email && emailExists === true && mode === 'signup' && (
+                    <p className="mt-1 text-sm text-orange-400 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      This email is already registered. 
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode('login');
+                          setEmailExists(null);
+                        }}
+                        className="ml-1 underline hover:text-orange-300 transition-colors"
+                      >
+                        Log in instead?
+                      </button>
+                    </p>
+                  )}
+                  {!errors.email && emailExists === false && mode === 'login' && formData.email && (
+                    <p className="mt-1 text-sm text-blue-400 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      This email is not registered. 
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode('signup');
+                          setEmailExists(null);
+                        }}
+                        className="ml-1 underline hover:text-blue-300 transition-colors"
+                      >
+                        Sign up instead?
+                      </button>
+                    </p>
+                  )}
                 </div>
 
                 {/* Password */}
@@ -414,6 +515,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     </p>
                   )}
                 </div>
+
+                {/* Forgot Password Link - Login mode only */}
+                {mode === 'login' && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!formData.email) {
+                          setSubmitMessage('Please enter your email address first');
+                          setSubmitSuccess(false);
+                          return;
+                        }
+                        
+                        try {
+                          await authService.resetPassword(formData.email);
+                          setSubmitMessage('Password reset email sent! Check your inbox.');
+                          setSubmitSuccess(true);
+                        } catch (error) {
+                          setSubmitMessage(error instanceof Error ? error.message : 'Failed to send reset email');
+                          setSubmitSuccess(false);
+                        }
+                      }}
+                      className="text-sm text-orange-400 hover:text-orange-300 transition-colors duration-200"
+                      disabled={isSubmitting}
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
+                )}
 
                 {/* Error Message */}
                 {submitMessage && !submitSuccess && (

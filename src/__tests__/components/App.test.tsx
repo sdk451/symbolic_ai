@@ -127,9 +127,33 @@ describe('App', () => {
 
   it('shows Demos component when authenticated and onboarding completed', () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: '1', email: 'test@example.com' },
-      profile: { onboarding_completed: true },
-      session: {},
+      user: { 
+        id: '1', 
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2024-01-01T00:00:00Z'
+      } as any,
+      profile: { 
+        id: '1',
+        full_name: 'Test User',
+        phone: '+1234567890',
+        email: 'test@example.com',
+        persona_segment: 'SMB' as const,
+        onboarding_completed: true,
+        organization_name: null,
+        organization_size: null,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      } as any,
+      session: {
+        access_token: 'mock-token',
+        refresh_token: 'mock-refresh',
+        expires_in: 3600,
+        token_type: 'bearer',
+        user: {} as any
+      } as any,
       isAuthenticated: true,
       isEmailVerified: true,
       loading: false
@@ -141,6 +165,7 @@ describe('App', () => {
       </BrowserRouter>
     )
     
+    // Should show demos instead of hero when authenticated
     expect(screen.getByTestId('demos')).toBeTruthy()
     expect(screen.queryByTestId('hero')).toBeFalsy()
   })

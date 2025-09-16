@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import ConsultationModal from './ConsultationModal';
 import AuthModal from './AuthModal';
+import { hasAccountFromCookie } from '../lib/cookies';
 
 const Hero = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,21 +30,27 @@ const Hero = () => {
     };
   }, []);
 
-  const handleGetStartedClick = () => {
-    if (isAuthenticated && isEmailVerified) {
-      // User is fully authenticated, scroll to demos
-      const demosSection = document.getElementById('demos');
-      if (demosSection) {
-        demosSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else if (isAuthenticated && !isEmailVerified) {
+  const handleGetStartedClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isAuthenticated && !isEmailVerified) {
       // User is signed up but not verified
       alert('Please check your email and click the verification link to access all features.');
     } else {
-      // User is not authenticated, open signup modal in hero (centered)
-      setAuthMode('signup');
+      // User is not authenticated, check cookie to determine mode
+      const hasAccount = hasAccountFromCookie();
+      setAuthMode(hasAccount ? 'login' : 'signup');
       setIsAuthModalOpen(true);
     }
+  };
+
+  const getButtonText = () => {
+    if (isAuthenticated && !isEmailVerified) return 'Verify Email';
+    
+    // Check cookie to see if user has an account
+    const hasAccount = hasAccountFromCookie();
+    return hasAccount ? 'Log In' : 'Get Started';
   };
 
   return (
@@ -77,7 +84,7 @@ const Hero = () => {
             onClick={handleGetStartedClick}
             className="border border-orange-500 text-orange-400 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-500 hover:text-white transition-all duration-200 transform hover:scale-105"
           >
-            {isAuthenticated && isEmailVerified ? 'View Demos' : 'Get Started'}
+            {getButtonText()}
           </button>
         </div>
       </div>
