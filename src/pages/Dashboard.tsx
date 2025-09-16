@@ -1,14 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
 import DemoCard from '../components/DemoCard';
 import ActivityFeed from '../components/ActivityFeed';
 import ConsultationCTA from '../components/ConsultationCTA';
+import ConsultationModal from '../components/ConsultationModal';
 import { User, Building2, Crown, Briefcase, GraduationCap } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const { data, loading, error, startDemoRun } = useDashboard(profile?.persona_segment || null);
+  const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenConsultationModal = () => {
+      setIsConsultationModalOpen(true);
+    };
+
+    window.addEventListener('openConsultationModal', handleOpenConsultationModal);
+    
+    return () => {
+      window.removeEventListener('openConsultationModal', handleOpenConsultationModal);
+    };
+  }, []);
 
   const handleBookConsultation = () => {
     // Dispatch event to open consultation modal
@@ -35,15 +49,15 @@ const Dashboard: React.FC = () => {
   const getPersonaColor = (segment: string | null) => {
     switch (segment) {
       case 'SMB':
-        return 'text-blue-400';
+        return 'text-yellow-400';
       case 'SOLO':
-        return 'text-green-400';
-      case 'EXEC':
-        return 'text-purple-400';
-      case 'FREELANCER':
         return 'text-orange-400';
+      case 'EXEC':
+        return 'text-orange-500';
+      case 'FREELANCER':
+        return 'text-red-400';
       case 'ASPIRING':
-        return 'text-cyan-400';
+        return 'text-red-500';
       default:
         return 'text-gray-400';
     }
@@ -230,6 +244,12 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Consultation Modal */}
+      <ConsultationModal 
+        isOpen={isConsultationModalOpen} 
+        onClose={() => setIsConsultationModalOpen(false)} 
+      />
     </div>
   );
 };

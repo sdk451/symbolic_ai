@@ -80,7 +80,7 @@ function App() {
                   <div id="demos" className="pt-16">
                     <Demos />
                   </div>
-                ) : isAuthenticated && isEmailVerified && !profile?.onboarding_completed ? (
+                ) : isAuthenticated && isEmailVerified && profile && !profile.onboarding_completed ? (
                   <Navigate to="/onboarding" replace />
                 ) : (
                   <Hero />

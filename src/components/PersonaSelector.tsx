@@ -25,45 +25,45 @@ const personaOptions: PersonaOption[] = [
     title: 'Small/Medium Business',
     description: 'Growing business looking to adopt AI solutions to scale operations and efficiency',
     icon: <Building2 className="w-6 h-6" />,
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/30'
+    color: 'text-yellow-400',
+    bgColor: 'bg-gradient-to-br from-yellow-500/10 to-orange-500/10',
+    borderColor: 'border-yellow-500/30'
   },
   {
     id: 'SOLO',
     title: 'Solo Entrepreneur',
     description: 'Independent professional building your own business',
     icon: <User className="w-6 h-6" />,
-    color: 'text-green-400',
-    bgColor: 'bg-green-500/10',
-    borderColor: 'border-green-500/30'
+    color: 'text-orange-400',
+    bgColor: 'bg-gradient-to-br from-orange-500/10 to-orange-600/10',
+    borderColor: 'border-orange-500/30'
   },
   {
     id: 'EXEC',
     title: 'Executive Leader',
     description: 'Senior leader in large organization driving strategic initiatives',
     icon: <Crown className="w-6 h-6" />,
-    color: 'text-purple-400',
-    bgColor: 'bg-purple-500/10',
-    borderColor: 'border-purple-500/30'
+    color: 'text-orange-500',
+    bgColor: 'bg-gradient-to-br from-orange-600/10 to-red-500/10',
+    borderColor: 'border-orange-600/30'
   },
   {
     id: 'FREELANCER',
     title: 'Freelancer/Consultant',
     description: 'Independent professional providing services to multiple clients',
     icon: <Briefcase className="w-6 h-6" />,
-    color: 'text-orange-400',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/30'
+    color: 'text-red-400',
+    bgColor: 'bg-gradient-to-br from-red-500/10 to-red-600/10',
+    borderColor: 'border-red-500/30'
   },
   {
     id: 'ASPIRING',
     title: 'Aspiring Leader',
     description: 'Professional keen to develop AI skills to advance your career',
     icon: <GraduationCap className="w-6 h-6" />,
-    color: 'text-cyan-400',
-    bgColor: 'bg-cyan-500/10',
-    borderColor: 'border-cyan-500/30'
+    color: 'text-red-500',
+    bgColor: 'bg-gradient-to-br from-red-600/10 to-red-700/10',
+    borderColor: 'border-red-600/30'
   }
 ];
 

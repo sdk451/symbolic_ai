@@ -27,7 +27,9 @@ const mockSupabase = {
     })),
     select: vi.fn(() => ({
       eq: vi.fn(() => ({
-        single: vi.fn()
+        eq: vi.fn(() => ({
+          single: vi.fn()
+        }))
       }))
     }))
   }))
@@ -66,16 +68,25 @@ describe('Demo Execution API', () => {
     it('should successfully start a demo execution', async () => {
       // Mock successful database insert
       const mockDemoRun = {
-        id: 'test-run-id',
-        user_id: 'test-user-id',
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        user_id: '550e8400-e29b-41d4-a716-446655440001',
         demo_id: 'test-demo',
         status: 'queued',
         created_at: new Date().toISOString()
       };
       
-      mockSupabase.from().insert().select().single.mockResolvedValue({
-        data: mockDemoRun,
-        error: null
+      // Setup the mock chain for insert
+      const mockInsert = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: mockDemoRun,
+            error: null
+          })
+        })
+      });
+      
+      mockSupabase.from.mockReturnValue({
+        insert: mockInsert
       });
 
       // Mock fetch for n8n webhook call
@@ -84,7 +95,7 @@ describe('Demo Execution API', () => {
         json: () => Promise.resolve({ success: true })
       });
 
-      const request = new Request('http://localhost/api/demos/test-demo/run', {
+      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/run', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +110,7 @@ describe('Demo Execution API', () => {
       const result = await response.json();
 
       expect(response.status).toBe(202);
-      expect(result.id).toBe('test-run-id');
+      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440000');
       expect(result.status).toBe('queued');
       expect(result.message).toBe('Demo execution started successfully');
       
@@ -182,19 +193,25 @@ describe('Demo Execution API', () => {
 
   describe('POST /api/demos/:runId/callback', () => {
     it('should successfully process n8n callback', async () => {
-      // Mock successful database update
-      mockSupabase.from().update().eq.mockResolvedValue({
-        error: null
+      // Setup the mock chain for update
+      const mockUpdate = vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          error: null
+        })
+      });
+      
+      mockSupabase.from.mockReturnValue({
+        update: mockUpdate
       });
 
       const callbackPayload = {
-        runId: 'test-run-id',
+        runId: '550e8400-e29b-41d4-a716-446655440000',
         status: 'succeeded',
         outputData: { result: 'success' },
         executionTime: 1500
       };
 
-      const request = new Request('http://localhost/api/demos/test-run-id/callback', {
+      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/callback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,7 +235,7 @@ describe('Demo Execution API', () => {
     it('should return 401 for invalid HMAC signature', async () => {
       vi.mocked(core.hmacVerify).mockReturnValue(false);
 
-      const request = new Request('http://localhost/api/demos/test-run-id/callback', {
+      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/callback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -226,7 +243,7 @@ describe('Demo Execution API', () => {
           'X-Timestamp': new Date().toISOString()
         },
         body: JSON.stringify({
-          runId: 'test-run-id',
+          runId: '550e8400-e29b-41d4-a716-446655440000',
           status: 'succeeded'
         })
       });
@@ -260,7 +277,7 @@ describe('Demo Execution API', () => {
     });
 
     it('should return 400 for run ID mismatch', async () => {
-      const request = new Request('http://localhost/api/demos/test-run-id/callback', {
+      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/callback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -268,7 +285,7 @@ describe('Demo Execution API', () => {
           'X-Timestamp': new Date().toISOString()
         },
         body: JSON.stringify({
-          runId: 'different-run-id', // Mismatch
+          runId: '550e8400-e29b-41d4-a716-446655440001', // Mismatch
           status: 'succeeded'
         })
       });
@@ -285,8 +302,8 @@ describe('Demo Execution API', () => {
   describe('GET /api/demos/:runId/status', () => {
     it('should return demo run status', async () => {
       const mockDemoRun = {
-        id: 'test-run-id',
-        user_id: 'test-user-id',
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        user_id: '550e8400-e29b-41d4-a716-446655440001',
         demo_id: 'test-demo',
         status: 'running',
         input_data: { test: 'input' },
@@ -298,12 +315,23 @@ describe('Demo Execution API', () => {
         updated_at: new Date().toISOString()
       };
 
-      mockSupabase.from().select().eq().single.mockResolvedValue({
-        data: mockDemoRun,
-        error: null
+      // Setup the mock chain for select with double eq
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: mockDemoRun,
+              error: null
+            })
+          })
+        })
+      });
+      
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect
       });
 
-      const request = new Request('http://localhost/api/demos/test-run-id/status', {
+      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/status', {
         method: 'GET',
         headers: {
           'Authorization': 'Bearer test-token'
@@ -314,18 +342,29 @@ describe('Demo Execution API', () => {
       const result = await response.json();
 
       expect(response.status).toBe(200);
-      expect(result.id).toBe('test-run-id');
+      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440000');
       expect(result.status).toBe('running');
       expect(result.demoId).toBe('test-demo');
     });
 
     it('should return 404 for non-existent demo run', async () => {
-      mockSupabase.from().select().eq().single.mockResolvedValue({
-        data: null,
-        error: { message: 'Not found' }
+      // Setup the mock chain for select with double eq (error case)
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: null,
+              error: { message: 'Not found' }
+            })
+          })
+        })
+      });
+      
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect
       });
 
-      const request = new Request('http://localhost/api/demos/non-existent/status', {
+      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440002/status', {
         method: 'GET',
         headers: {
           'Authorization': 'Bearer test-token'

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import PersonaSelector, { PersonaSegment } from '../../components/PersonaSelector';
 import { authService } from '../../services/auth';
+import { Zap } from 'lucide-react';
 
 const OnboardingPage: React.FC = () => {
   const { user, profile, isEmailVerified, loading, refreshProfile } = useAuth();
@@ -106,8 +107,9 @@ const OnboardingPage: React.FC = () => {
       <div className="border-b border-orange-500/20 bg-[#1a1a1a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-orange-500">
+            <div className="flex items-center space-x-2">
+              <Zap className="w-8 h-8 text-orange-500" />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-300 to-orange-600 bg-clip-text text-transparent">
                 Symbolic AI
               </h1>
             </div>
