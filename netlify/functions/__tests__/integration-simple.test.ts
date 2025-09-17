@@ -20,7 +20,7 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
     
     // Setup default mocks
     vi.mocked(core.verifyUser).mockResolvedValue({
-      id: 'test-user-id',
+      id: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com'
     } as any);
     
@@ -36,32 +36,57 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
     });
     vi.mocked(core.hmacSign).mockReturnValue('test-signature');
     vi.mocked(core.hmacVerify).mockReturnValue(true);
-  });
-
-  describe('API Endpoint Integration', () => {
-    it('should handle demo execution request with proper validation', async () => {
-      // Mock Supabase client
-      const mockSupabase = {
-        from: vi.fn(() => ({
-          insert: vi.fn(() => ({
-            select: vi.fn(() => ({
+    
+    // Mock Supabase client for sbForUser
+    const mockSupabase = {
+      from: vi.fn(() => ({
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({
+              data: {
+                id: '550e8400-e29b-41d4-a716-446655440001',
+                user_id: '550e8400-e29b-41d4-a716-446655440000',
+                demo_id: 'test-demo',
+                status: 'queued',
+                input_data: { test: 'data' },
+                created_at: new Date().toISOString()
+              },
+              error: null
+            })
+          }))
+        })),
+        update: vi.fn(() => ({
+          eq: vi.fn().mockResolvedValue({
+            error: null
+          })
+        })),
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
               single: vi.fn().mockResolvedValue({
                 data: {
-                  id: 'test-run-id',
-                  user_id: 'test-user-id',
+                  id: '550e8400-e29b-41d4-a716-446655440001',
+                  user_id: '550e8400-e29b-41d4-a716-446655440000',
                   demo_id: 'test-demo',
-                  status: 'queued',
-                  created_at: new Date().toISOString()
+                  status: 'succeeded',
+                  input_data: { test: 'data' },
+                  output_data: { result: 'success' },
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
                 },
                 error: null
               })
             }))
           }))
         }))
-      };
-      
-      vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as any);
+      }))
+    };
+    
+    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as any);
+  });
 
+  describe('API Endpoint Integration', () => {
+    it('should handle demo execution request with proper validation', async () => {
       // Mock fetch for n8n webhook call
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -83,33 +108,20 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
       const result = await response.json();
 
       expect(response.status).toBe(202);
-      expect(result.id).toBe('test-run-id');
+      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440001');
       expect(result.status).toBe('queued');
       expect(result.message).toBe('Demo execution started successfully');
     });
 
     it('should handle callback request with HMAC verification', async () => {
-      // Mock Supabase client
-      const mockSupabase = {
-        from: vi.fn(() => ({
-          update: vi.fn(() => ({
-            eq: vi.fn().mockResolvedValue({
-              error: null
-            })
-          }))
-        }))
-      };
-      
-      vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as any);
-
       const callbackPayload = {
-        runId: 'test-run-id',
+        runId: '550e8400-e29b-41d4-a716-446655440001',
         status: 'succeeded',
         outputData: { result: 'success' },
         executionTime: 1500
       };
 
-      const request = new Request('http://localhost/api/demos/test-run-id/callback', {
+      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440001/callback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,35 +140,7 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
     });
 
     it('should handle status check request', async () => {
-      // Mock Supabase client
-      const mockSupabase = {
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              single: vi.fn().mockResolvedValue({
-                data: {
-                  id: 'test-run-id',
-                  user_id: 'test-user-id',
-                  demo_id: 'test-demo',
-                  status: 'succeeded',
-                  input_data: { test: 'data' },
-                  output_data: { result: 'success' },
-                  error_message: null,
-                  started_at: new Date().toISOString(),
-                  completed_at: new Date().toISOString(),
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                },
-                error: null
-              })
-            }))
-          }))
-        }))
-      };
-      
-      vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as any);
-
-      const request = new Request('http://localhost/api/demos/test-run-id/status', {
+      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440001/status', {
         method: 'GET',
         headers: {
           'Authorization': 'Bearer test-token'
@@ -167,7 +151,7 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
       const result = await response.json();
 
       expect(response.status).toBe(200);
-      expect(result.id).toBe('test-run-id');
+      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440001');
       expect(result.status).toBe('succeeded');
       expect(result.outputData).toEqual({ result: 'success' });
     });
