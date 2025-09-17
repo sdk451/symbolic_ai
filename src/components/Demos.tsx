@@ -30,7 +30,7 @@ const Demos = () => {
     },
     {
       icon: Calendar,
-      title: 'AI Smart Appointment Scheduler',
+      title: 'AI Appointment Scheduler',
       description: 'Try our AI-powered scheduling system that manages appointments intelligently',
       steps: [
         'Request an appointment via chat',
