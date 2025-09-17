@@ -4,12 +4,12 @@ const Demos = () => {
   const demos = [
     {
       icon: Bot,
-      title: 'AI Lead Qualification Agent',
+      title: 'AI Speed to Lead Qualification Agent',
       description: 'Experience how our AI agent qualifies leads and schedules appointments automatically',
       steps: [
         'Fill out a sample lead form',
-        'Watch AI analyze and score the lead',
-        'See automatic follow-up sequences',
+        'Answer the Lead Qualification Agents call',
+        'Let the AI analyze and score the lead',
         'View calendar integration in action'
       ],
       demoUrl: '#demo-lead-qualification',
@@ -30,7 +30,7 @@ const Demos = () => {
     },
     {
       icon: Calendar,
-      title: 'Smart Appointment Scheduler',
+      title: 'AI Smart Appointment Scheduler',
       description: 'Try our AI-powered scheduling system that manages appointments intelligently',
       steps: [
         'Request an appointment via chat',
