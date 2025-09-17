@@ -20,7 +20,12 @@
     "setup": "npm install && npm run type-check",
     "clear-auth-cookie": "node scripts/clear-auth-cookie.js",
     "clean": "rm -rf dist node_modules/.vite",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "deploy:local": "netlify dev",
+    "deploy:preview": "netlify deploy --dir=dist",
+    "deploy:production": "netlify deploy --prod --dir=dist",
+    "deploy:automated": "npm run type-check && npm run lint && npm test -- --run && npm run build && npm run deploy:production",
+    "deploy:status": "netlify status"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.2",
