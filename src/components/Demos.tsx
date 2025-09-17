@@ -1,4 +1,3 @@
-import React from 'react';
 import { Bot, MessageCircle, Calendar, ArrowRight, Play } from 'lucide-react';
 
 const Demos = () => {
@@ -14,7 +13,7 @@ const Demos = () => {
         'View calendar integration in action'
       ],
       demoUrl: '#demo-lead-qualification',
-      color: 'from-blue-500 to-blue-600'
+      color: 'from-green-500 to-blue-600'
     },
     {
       icon: MessageCircle,
@@ -27,7 +26,7 @@ const Demos = () => {
         'See escalation to human agents'
       ],
       demoUrl: '#demo-chatbot',
-      color: 'from-green-500 to-green-600'
+      color: 'from-blue-500 to-purple-600'
     },
     {
       icon: Calendar,
@@ -40,11 +39,11 @@ const Demos = () => {
         'Receive confirmation and reminders'
       ],
       demoUrl: '#demo-scheduler',
-      color: 'from-purple-500 to-purple-600'
+      color: 'from-purple-500 to-red-600'
     }
   ];
 
-  const handleStartDemo = (demoUrl: string, title: string) => {
+  const handleStartDemo = (title: string) => {
     // For now, we'll just log the demo start
     console.log(`Starting demo: ${title}`);
     // In a real implementation, this would navigate to the demo or open a modal
@@ -104,7 +103,7 @@ const Demos = () => {
 
                 {/* Start Demo Button */}
                 <button
-                  onClick={() => handleStartDemo(demo.demoUrl, demo.title)}
+                  onClick={() => handleStartDemo(demo.title)}
                   className={`w-full bg-gradient-to-r ${demo.color} text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 transform group-hover:scale-105 flex items-center justify-center`}
                 >
                   <Play className="w-5 h-5 mr-2" />

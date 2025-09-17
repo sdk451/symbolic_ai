@@ -73,6 +73,12 @@ const Navbar = () => {
             <span className="text-xl font-bold bg-gradient-to-r from-orange-300 to-orange-600 bg-clip-text text-transparent">
               Symbolic AI
             </span>
+            {/* Welcome message for authenticated users */}
+            {isAuthenticated && isEmailVerified && (
+              <span className="text-gray-300 font-medium ml-16 text-base">
+                Welcome, {user?.user_metadata?.full_name || user?.email}
+              </span>
+            )}
           </div>
 
           {/* Desktop Navigation */}
@@ -90,9 +96,6 @@ const Navbar = () => {
             {/* Auth Buttons */}
             {isAuthenticated && isEmailVerified ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-300 text-sm">
-                  Welcome, {user?.user_metadata?.full_name || user?.email}
-                </span>
                 <button
                   onClick={handleLogout}
                   className="text-gray-300 hover:text-orange-300 transition-colors duration-200 font-medium flex items-center"
@@ -143,9 +146,6 @@ const Navbar = () => {
               {/* Mobile Auth Buttons */}
               {isAuthenticated && isEmailVerified ? (
                 <div className="pt-4 border-t border-gray-700">
-                  <div className="px-3 py-2 text-sm text-gray-400">
-                    Welcome, {user?.user_metadata?.full_name || user?.email}
-                  </div>
                   <button
                     onClick={() => {
                       handleLogout();

@@ -22,9 +22,21 @@ interface FormErrors {
 interface ConsultationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  userData?: {
+    name: string;
+    email: string;
+    phone: string;
+    company_name: string;
+    company_website: string;
+    services_of_interest: string[];
+    project_timeline: string;
+    estimated_budget: string;
+    challenge_to_solve: string;
+    company_size: string;
+  };
 }
 
-const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose }) => {
+const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, userData }) => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -55,7 +67,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose }
     'Personal Productivity / Career Coaching'
   ];
 
-  // Auto-save to localStorage
+  // Auto-save to localStorage and pre-populate with user data
   useEffect(() => {
     if (isOpen) {
       const savedData = localStorage.getItem('consultation_form_draft');
@@ -65,13 +77,27 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose }
         } catch (e) {
           console.error('Error loading saved form data:', e);
         }
+      } else if (userData) {
+        // Pre-populate with user data if no saved data exists
+        setFormData({
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+          company_name: userData.company_name,
+          company_website: userData.company_website,
+          services_of_interest: userData.services_of_interest,
+          project_timeline: userData.project_timeline,
+          estimated_budget: userData.estimated_budget,
+          challenge_to_solve: userData.challenge_to_solve,
+          company_size: userData.company_size
+        });
       }
       // Focus first input when modal opens
       setTimeout(() => {
         firstInputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen]);
+  }, [isOpen, userData]);
 
   useEffect(() => {
     if (isOpen && !isSubmitted) {

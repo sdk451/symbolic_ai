@@ -31,67 +31,129 @@ export const useAuth = (): AuthState => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Separate effect for auth state changes
   useEffect(() => {
-    // Get initial session
+    let mounted = true;
+
     const getInitialSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      
-      if (initialSession?.user) {
-        await fetchProfile(initialSession.user.id);
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
       }
-      
-      setLoading(false);
     };
 
     getInitialSession();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
         }
-        
-        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+  // Separate effect for profile fetching - only runs when user changes
+  useEffect(() => {
+    let mounted = true;
 
-      if (error) {
+    const fetchProfile = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (!mounted) return;
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          // Set default profile for new users
+          setProfile({
+            id: userId,
+            full_name: '',
+            phone: null,
+            email: '',
+            persona_segment: null,
+            onboarding_completed: false,
+            organization_name: null,
+            organization_size: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        } else {
+          setProfile(data);
+        }
+      } catch (error) {
         console.error('Error fetching profile:', error);
-        return;
+        if (mounted) {
+          // Set default profile on error
+          setProfile({
+            id: userId,
+            full_name: '',
+            phone: null,
+            email: '',
+            persona_segment: null,
+            onboarding_completed: false,
+            organization_name: null,
+            organization_size: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
+    };
 
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
+    if (user) {
+      fetchProfile(user.id);
+    } else {
+      setProfile(null);
+      setLoading(false);
     }
-  };
+
+    return () => {
+      mounted = false;
+    };
+  }, [user]); // Only depend on user, not profile
 
   const isAuthenticated = !!user && !!session;
-  // Check email verification status properly
   const isEmailVerified = user?.email_confirmed_at != null;
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error refreshing profile:', error);
+          return;
+        }
+
+        setProfile(data);
+      } catch (error) {
+        console.error('Error refreshing profile:', error);
+      }
     }
   };
 

@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -14,11 +15,30 @@ import OnboardingPage from './pages/auth/onboarding';
 import AuthCallback from './pages/auth/callback';
 import ResetPassword from './pages/auth/reset-password';
 import Dashboard from './pages/Dashboard';
+import ConsultationModal from './components/ConsultationModal';
 
 function App() {
-  const { isAuthenticated, isEmailVerified, profile, loading } = useAuth();
+  console.log('App component rendering...');
+  const { isAuthenticated, isEmailVerified, profile, loading, user } = useAuth();
+  const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
+  
+  console.log('App state:', { isAuthenticated, isEmailVerified, profile, loading });
+
+  // Handle consultation modal events
+  useEffect(() => {
+    const handleOpenConsultationModal = () => {
+      setIsConsultationModalOpen(true);
+    };
+
+    window.addEventListener('openConsultationModal', handleOpenConsultationModal);
+
+    return () => {
+      window.removeEventListener('openConsultationModal', handleOpenConsultationModal);
+    };
+  }, []);
 
   if (loading) {
+    console.log('App showing loading screen');
     return (
       <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">
         <div className="text-center">
@@ -28,6 +48,8 @@ function App() {
       </div>
     );
   }
+  
+  console.log('App rendering main content');
 
   return (
     <div className="min-h-screen bg-[#121212] text-white relative overflow-x-hidden">
@@ -62,7 +84,14 @@ function App() {
           <Route 
             path="/onboarding" 
             element={
-              isAuthenticated && isEmailVerified && !profile?.onboarding_completed ? (
+              loading ? (
+                <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <p className="text-gray-300">Loading...</p>
+                  </div>
+                </div>
+              ) : isAuthenticated && isEmailVerified && profile && !profile.onboarding_completed ? (
                 <OnboardingPage />
               ) : (
                 <Navigate to="/" replace />
@@ -96,6 +125,24 @@ function App() {
           />
         </Routes>
       </div>
+      
+      {/* Consultation Modal */}
+      <ConsultationModal 
+        isOpen={isConsultationModalOpen} 
+        onClose={() => setIsConsultationModalOpen(false)}
+        userData={isAuthenticated && user ? {
+          name: user.user_metadata?.full_name || profile?.full_name || '',
+          email: user.email || '',
+          phone: profile?.phone || '',
+          company_name: profile?.organization_name || '',
+          company_website: '',
+          services_of_interest: [],
+          project_timeline: '',
+          estimated_budget: '',
+          challenge_to_solve: '',
+          company_size: profile?.organization_size || ''
+        } : undefined}
+      />
     </div>
   );
 }

@@ -4,10 +4,22 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
+console.log('Main.tsx: Starting application...');
+
+const rootElement = document.getElementById('root');
+console.log('Root element:', rootElement);
+
+if (!rootElement) {
+  console.error('Root element not found!');
+  throw new Error('Root element not found');
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>
       <App />
     </BrowserRouter>
   </StrictMode>
 );
+
+console.log('Main.tsx: Application rendered');
