@@ -45,7 +45,13 @@ function Test-NetlifyCLI {
 function Test-NetlifyAuth {
     try {
         $null = netlify status 2>$null
-        return $true
+        if ($LASTEXITCODE -eq 0) {
+            return $true
+        } else {
+            Write-Warning "Not logged in to Netlify. Please log in:"
+            netlify login
+            return $true
+        }
     }
     catch {
         Write-Warning "Not logged in to Netlify. Please log in:"
@@ -91,7 +97,7 @@ function Start-LocalDev {
 }
 
 # Function for preview deployment
-function Deploy-Preview {
+function Start-PreviewDeploy {
     Write-Status "Deploying preview to Netlify..."
     netlify deploy --dir=dist
     if ($LASTEXITCODE -ne 0) { throw "Preview deployment failed" }
@@ -99,7 +105,7 @@ function Deploy-Preview {
 }
 
 # Function for production deployment
-function Deploy-Production {
+function Start-ProductionDeploy {
     Write-Status "Deploying to production..."
     netlify deploy --prod --dir=dist
     if ($LASTEXITCODE -ne 0) { throw "Production deployment failed" }
@@ -116,10 +122,11 @@ function Invoke-AutomatedDeploy {
     # Build application
     Invoke-Build
     
-    # Deploy to production
-    Deploy-Production
+    # Deploy to preview first (safer)
+    Start-PreviewDeploy
     
     Write-Success "Automated deployment completed successfully!"
+    Write-Warning "This was a preview deployment. Use 'production' command for live deployment."
 }
 
 # Function to show deployment status
@@ -158,8 +165,8 @@ try {
     # Execute command
     switch ($Command) {
         "local" { Start-LocalDev }
-        "preview" { Deploy-Preview }
-        "production" { Deploy-Production }
+        "preview" { Start-PreviewDeploy }
+        "production" { Start-ProductionDeploy }
         "automated" { Invoke-AutomatedDeploy }
         "status" { Show-Status }
         "help" { Show-Help }
