@@ -1,5 +1,10 @@
 # Story 2.1: Expanded Demo Library
 
+**Status:** 📋 Approved - Requires Demo Portfolio Updates  
+**Priority:** Medium (Epic 2 - Incremental Enhancements)  
+**Estimated Effort:** 5-8 story points  
+**Dependencies:** Story 1.3 (Secure Demo Execution System) must be complete
+
 ## User Story
 
 As a **dashboard user exploring AI capabilities**,
@@ -44,7 +49,7 @@ So that **I can discover AI solutions relevant to my specific industry, role, an
 
 ## Definition of Done
 
-- [ ] 7+ new demo records added to demo_types table
+- [ ] **UPDATED**: 3 new demo records added to demo_types table (Stories 1.5, 1.6, 1.7)
 - [ ] Demo cards display correctly in dashboard with proper filtering
 - [ ] All new demos execute successfully through existing API
 - [ ] Demo descriptions and metadata are clear and compelling
@@ -53,6 +58,16 @@ So that **I can discover AI solutions relevant to my specific industry, role, an
 - [ ] Dashboard performance maintained with expanded demo library
 - [ ] User testing completed for demo discovery and execution
 - [ ] Documentation updated with new demo portfolio
+
+### Required Updates for New Demo Stories
+
+**Demo Portfolio Updates Required**:
+- [ ] Update demo portfolio to reflect the three new implemented demos (Stories 1.5, 1.6, 1.7)
+- [ ] Adjust demo count expectations (now have 6 active demos instead of 3)
+- [ ] Update demo categorization and persona targeting for new demos
+- [ ] Ensure n8n workflow integration for new demo types
+- [ ] Update demo library documentation to include new demo types
+- [ ] Verify demo discovery and filtering works with expanded library
 
 ## Risk and Compatibility Check
 

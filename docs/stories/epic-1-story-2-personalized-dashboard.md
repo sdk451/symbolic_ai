@@ -1,6 +1,6 @@
 # Story 1.2: Personalized Dashboard
 
-**Status:** ✅ Ready for Review  
+**Status:** 📋 Approved - Requires Demo Configuration Updates  
 **Priority:** High (Epic 1 - MVP Core Platform)  
 **Estimated Effort:** 8-13 story points  
 **Dependencies:** Story 1.1 (User Authentication & Onboarding) must be complete
@@ -325,4 +325,16 @@ NFR assessment: docs/qa/assessments/1.2-nfr-20250115.md
 
 ### Recommended Status - Final
 
-**✓ Ready for Done** - Story 1.2 is now fully functional with the onboarding dependency resolved. The personalized dashboard provides excellent persona-aware content filtering, comprehensive demo cards, activity feeds, and consultation CTAs as specified in the requirements.
+**📋 Approved - Requires Demo Configuration Updates** - Story 1.2 is fully functional but requires updates to support the three new demo implementations (Stories 1.5, 1.6, 1.7). The dashboard needs demo configuration updates to include the new demo types and their specific metadata.
+
+### Required Updates for New Demo Stories
+
+**Demo Configuration Updates Required**:
+- [ ] Update `src/services/dashboard.ts` to include three new demo types:
+  - `speed-to-lead-qualification` (Story 1.5) - Lead qualification form with VAPI call
+  - `customer-service-chatbot` (Story 1.6) - Chat widget with n8n integration  
+  - `ai-appointment-scheduler` (Story 1.7) - Pre-populated form with appointment scheduling
+- [ ] Update demo metadata, descriptions, and persona targeting for new demos
+- [ ] Ensure proper integration with new demo execution patterns
+- [ ] Update demo card configurations to match new story requirements
+- [ ] Test integration with new demo execution API endpoints

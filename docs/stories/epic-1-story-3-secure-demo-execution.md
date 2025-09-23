@@ -1,6 +1,6 @@
 # Story 1.3: Secure Demo Execution System
 
-**Status:** ✅ Completed - Ready for Review  
+**Status:** 📋 Approved - Requires API Endpoint Extensions  
 **Priority:** High (Epic 1 - MVP Core Platform)  
 **Estimated Effort:** 13-21 story points  
 **Dependencies:** Story 1.2 (Personalized Dashboard) must be complete
@@ -269,4 +269,20 @@ NFR assessment: docs/qa/assessments/1.3-nfr-20250115.md
 
 ### Recommended Status - Updated
 
-**✓ Ready for Done** - The critical API issues have been resolved and all tests are passing. The secure demo execution system is now fully functional with excellent security, comprehensive error handling, and robust test coverage.
+**📋 Approved - Requires API Endpoint Extensions** - The secure demo execution system is fully functional but requires API endpoint extensions to support the three new demo implementations (Stories 1.5, 1.6, 1.7). The system needs additional endpoints and routing for the new demo types.
+
+### Required Updates for New Demo Stories
+
+**API Endpoint Extensions Required**:
+- [ ] Extend API endpoints to support new demo types:
+  - `POST /api/demos/speed-to-lead-qualification/run` - Lead qualification demo execution
+  - `POST /api/demos/customer-service-chatbot/run` - Chatbot demo execution
+  - `POST /api/demos/ai-appointment-scheduler/run` - Appointment scheduler demo execution
+- [ ] Add corresponding callback endpoints for each demo type:
+  - `POST /api/demos/speed-to-lead-qualification/callback`
+  - `POST /api/demos/customer-service-chatbot/callback`
+  - `POST /api/demos/ai-appointment-scheduler/callback`
+- [ ] Update demo type validation and routing logic in `netlify/functions/api.ts`
+- [ ] Add demo-specific webhook payload structures for each new demo type
+- [ ] Update rate limiting and quota checks for new demo types
+- [ ] Test integration with new demo execution flows

@@ -8,9 +8,9 @@ const Demos = () => {
       description: 'Experience how our AI agent qualifies leads and schedules appointments automatically',
       steps: [
         'Fill out a sample lead form',
-        'Answer the Lead Qualification Agents call',
-        'Let the AI analyze and score the lead',
-        'View calendar integration in action'
+        'Chat with our Lead Qualification Agent on the phone',
+        'Let the AI analyze your requirements',
+        'View a summary of the lead qualification call'
       ],
       demoUrl: '#demo-lead-qualification',
       color: 'from-green-500 to-blue-600'
@@ -21,9 +21,9 @@ const Demos = () => {
       description: 'Test our intelligent chatbot that handles customer inquiries with human-like responses',
       steps: [
         'Start a conversation with the AI',
-        'Ask common customer questions',
-        'Experience natural language processing',
-        'See escalation to human agents'
+        'Explore company knowledge base and FAQ',
+        'Find available timeslots and book an appointment',
+        'Email escalation to the team for additional support'
       ],
       demoUrl: '#demo-chatbot',
       color: 'from-blue-500 to-purple-600'
