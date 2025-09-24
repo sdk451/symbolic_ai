@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { submitConsultationRequest } from '../api/consultation';
+import Portal from './Portal';
 
 interface FormData {
   name: string;
@@ -158,14 +159,16 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
     };
   }, [isOpen]);
 
-  const validateField = (name: string, value: string): string => {
+  const validateField = (name: string, value: string | string[]): string => {
     switch (name) {
       case 'name':
+        if (typeof value !== 'string') return 'Invalid value type';
         if (!value.trim()) return 'Full name is required';
         if (value.length > 100) return 'Name must be less than 100 characters';
         return '';
       
       case 'email': {
+        if (typeof value !== 'string') return 'Invalid value type';
         if (!value.trim()) return 'Email address is required';
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) return 'Please enter a valid email address';
@@ -178,6 +181,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
       }
       
       case 'phone': {
+        if (typeof value !== 'string') return 'Invalid value type';
         if (!value.trim()) return 'Phone number is required';
         const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
         const cleanPhone = value.replace(/[\s\-()]/g, '');
@@ -186,10 +190,12 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
       }
       
       case 'company_name':
+        if (typeof value !== 'string') return 'Invalid value type';
         if (!value.trim()) return 'Company name is required';
         return '';
       
       case 'company_website':
+        if (typeof value !== 'string') return 'Invalid value type';
         if (value.trim() && !/^https?:\/\/.+\..+/.test(value)) {
           return 'Please enter a valid website URL (include http:// or https://)';
         }
@@ -202,14 +208,17 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
         return '';
       
       case 'project_timeline':
+        if (typeof value !== 'string') return 'Invalid value type';
         if (!value.trim()) return 'Project timeline is required';
         return '';
       
       case 'estimated_budget':
+        if (typeof value !== 'string') return 'Invalid value type';
         if (!value.trim()) return 'Estimated budget is required';
         return '';
       
       case 'challenge_to_solve':
+        if (typeof value !== 'string') return 'Invalid value type';
         if (!value.trim()) return 'Challenge description is required';
         if (value.trim().length < 10) return 'Please provide at least 10 characters';
         if (value.length > 500) return 'Description must be less than 500 characters';
@@ -245,10 +254,16 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
     
     Object.keys(formData).forEach(key => {
       if (key !== 'company_website') { // company_website is optional
-        const error = validateField(key, formData[key as keyof FormData]);
-        if (error) newErrors[key] = error;
+        const value = formData[key as keyof FormData];
+        if (key === 'services_of_interest') {
+          const error = validateField(key, value as string[]);
+          if (error) newErrors[key] = error;
+        } else {
+          const error = validateField(key, value as string);
+          if (error) newErrors[key] = error;
+        }
       } else if (formData.company_website) {
-        const error = validateField(key, formData[key as keyof FormData]);
+        const error = validateField(key, formData.company_website);
         if (error) newErrors[key] = error;
       }
     });
@@ -301,13 +316,14 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-start justify-center p-4 overflow-y-auto"
-      onClick={handleClose}
-      onMouseDown={(e) => e.preventDefault()}
-      data-modal="consultation"
-      tabIndex={-1}
-    >
+    <Portal>
+      <div 
+        className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-start justify-center p-4 overflow-y-auto"
+        onClick={handleClose}
+        onMouseDown={(e) => e.preventDefault()}
+        data-modal="consultation"
+        tabIndex={-1}
+      >
       <div
         ref={modalRef}
         className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg w-full max-w-2xl my-8 mx-auto"
@@ -637,7 +653,8 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </Portal>
   );
 };
 

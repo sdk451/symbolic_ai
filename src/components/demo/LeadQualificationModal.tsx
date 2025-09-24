@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Phone, Mail, User, MessageSquare, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useDemoExecution } from '../../hooks/useDemoExecution';
+import Portal from '../Portal';
 
 interface LeadQualificationModalProps {
   isOpen: boolean;
@@ -162,13 +163,14 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999] p-4"
-      onClick={handleClose}
-      onMouseDown={(e) => e.preventDefault()}
-      data-modal="lead-qualification"
-      tabIndex={-1}
-    >
+    <Portal>
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999] p-4"
+        onClick={handleClose}
+        onMouseDown={(e) => e.preventDefault()}
+        data-modal="lead-qualification"
+        tabIndex={-1}
+      >
       <div 
         className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
@@ -375,7 +377,8 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </Portal>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MessageCircle, Loader2, AlertCircle, Send } from 'lucide-react';
 import { useDemoExecution } from '../../hooks/useDemoExecution';
+import Portal from '../Portal';
 
 interface ChatbotModalProps {
   isOpen: boolean;
@@ -148,13 +149,14 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999] p-4"
-      onClick={handleClose}
-      onMouseDown={(e) => e.preventDefault()}
-      data-modal="chatbot"
-      tabIndex={-1}
-    >
+    <Portal>
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999] p-4"
+        onClick={handleClose}
+        onMouseDown={(e) => e.preventDefault()}
+        data-modal="chatbot"
+        tabIndex={-1}
+      >
       <div 
         className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-2xl w-full h-[600px] flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -259,7 +261,8 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </Portal>
   );
 };
 

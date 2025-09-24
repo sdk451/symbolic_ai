@@ -186,10 +186,9 @@ describe('Dashboard', () => {
     expect(screen.getByText('Symbolic AI Dashboard')).toBeDefined();
     expect(screen.getByText('Welcome, John Doe')).toBeDefined();
     expect(screen.getByText('SMB')).toBeDefined();
-    expect(screen.getByText('Personalized Demos')).toBeDefined();
-    expect(screen.getByText('Demos tailored for SMB professionals')).toBeDefined();
+    expect(screen.getByText('AI Demo Suite')).toBeDefined();
+    expect(screen.getByText('Experience our core AI automation solutions')).toBeDefined();
     expect(screen.getByText('AI Lead Qualification Agent')).toBeDefined();
-    expect(screen.getByText('Recent Activity')).toBeDefined();
     expect(screen.getByText('Ready to Get Started?')).toBeDefined();
     expect(screen.getByText('Advanced Workflow Automation')).toBeDefined();
   });

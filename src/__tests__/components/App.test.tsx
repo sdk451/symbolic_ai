@@ -168,8 +168,8 @@ describe('App', () => {
       </BrowserRouter>
     )
     
-    // Should show demos instead of hero when authenticated
-    expect(screen.getByTestId('demos')).toBeTruthy()
+    // Should show dashboard instead of hero when authenticated
+    expect(screen.getByTestId('dashboard-page')).toBeTruthy()
     expect(screen.queryByTestId('hero')).toBeFalsy()
   })
 })

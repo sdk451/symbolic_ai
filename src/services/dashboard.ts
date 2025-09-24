@@ -153,11 +153,14 @@ const mockActivities: ActivityItem[] = [
 ];
 
 export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): DemoCard[] => {
-  // Return the same core demos for all personas
-  const coreDemoIds = ['speed-to-lead-qualification', 'customer-service-chatbot', 'ai-appointment-scheduler'];
+  if (!personaSegment) {
+    // Return all non-locked demos when no persona is specified
+    return mockDemos.filter(demo => !demo.isLocked);
+  }
   
+  // Filter demos that include the specified persona segment
   return mockDemos.filter(demo => 
-    coreDemoIds.includes(demo.id)
+    demo.personaSegments.includes(personaSegment)
   );
 };
 

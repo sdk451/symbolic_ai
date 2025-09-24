@@ -228,8 +228,16 @@ describe('DemoCard with Demo Execution', () => {
     demosWithDifferentIcons.forEach((demo) => {
       const { unmount } = render(<DemoCard demo={demo} />);
       
-      // Check that the icon component is rendered (it will show the icon name as text)
-      expect(screen.getByText(demo.icon)).toBeDefined();
+      // Check that the icon component is rendered with the correct testid
+      // Map icon names to their expected testids
+      const iconTestIdMap: Record<string, string> = {
+        'MessageCircle': 'message-circle-icon',
+        'Calendar': 'calendar-icon',
+        'FileText': 'file-text-icon',
+        'BarChart3': 'bar-chart-icon'
+      };
+      const expectedTestId = iconTestIdMap[demo.icon] || demo.icon.toLowerCase() + '-icon';
+      expect(screen.getByTestId(expectedTestId)).toBeDefined();
       
       unmount();
     });

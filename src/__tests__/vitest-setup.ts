@@ -70,6 +70,7 @@ vi.mock('lucide-react', () => ({
   Crown: () => React.createElement('div', { 'data-testid': 'crown-icon' }),
   Briefcase: () => React.createElement('div', { 'data-testid': 'briefcase-icon' }),
   GraduationCap: () => React.createElement('div', { 'data-testid': 'graduation-icon' }),
+  Zap: () => React.createElement('div', { 'data-testid': 'zap-icon' }),
   
   // DemoCard icons
   Play: () => React.createElement('div', { 'data-testid': 'play-icon' }),
@@ -103,4 +104,10 @@ vi.mock('lucide-react', () => ({
   MessageSquare: () => React.createElement('div', { 'data-testid': 'message-square-icon' }),
   Send: () => React.createElement('div', { 'data-testid': 'send-icon' }),
   Download: () => React.createElement('div', { 'data-testid': 'download-icon' }),
+  
+  // Footer icons
+  Twitter: () => React.createElement('div', { 'data-testid': 'twitter-icon' }),
+  Linkedin: () => React.createElement('div', { 'data-testid': 'linkedin-icon' }),
+  Github: () => React.createElement('div', { 'data-testid': 'github-icon' }),
+  MapPin: () => React.createElement('div', { 'data-testid': 'map-pin-icon' }),
 }));
