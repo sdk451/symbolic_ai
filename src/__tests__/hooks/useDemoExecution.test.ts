@@ -3,6 +3,9 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useDemoExecution } from '../../hooks/useDemoExecution';
 import * as dashboard from '../../services/dashboard';
 
+// Unmock the useDemoExecution hook for this test file
+vi.unmock('../../hooks/useDemoExecution');
+
 // Mock the dashboard service
 vi.mock('../../services/dashboard', () => ({
   startDemo: vi.fn(),

@@ -46,15 +46,18 @@ vi.mock('../hooks/useAuth', () => ({
 }));
 
 // Mock useDemoExecution hook globally
-const mockStartDemo = vi.fn().mockResolvedValue({ success: true, runId: 'test-run-id' });
+const mockStartDemo = vi.fn().mockResolvedValue({ success: true, message: 'Demo started successfully' });
+const mockRefreshStatus = vi.fn().mockResolvedValue(undefined);
 const mockClearRun = vi.fn();
 
 vi.mock('../hooks/useDemoExecution', () => ({
   useDemoExecution: vi.fn(() => ({
+    runId: null,
     status: null,
+    isLoading: false,
     error: null,
-    isExecuting: false,
     startDemo: mockStartDemo,
+    refreshStatus: mockRefreshStatus,
     clearRun: mockClearRun
   }))
 }));
