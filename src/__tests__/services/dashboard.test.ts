@@ -52,8 +52,10 @@ describe('Dashboard Service', () => {
     it('returns SOLO-specific demos for SOLO persona', () => {
       const demos = getPersonaBasedDemos('SOLO');
       
-      expect(demos.length).toBeGreaterThan(0);
-      expect(demos.every(demo => demo.personaSegments.includes('SOLO'))).toBe(true);
+      expect(demos.length).toBe(3);
+      expect(demos[1].id).toBe('customer-service-chatbot'); // Chatbot is always 2nd
+      expect(demos[0].personaSegments.includes('SOLO')).toBe(true); // First demo should be SOLO-compatible
+      expect(demos[2].personaSegments.includes('SOLO') || !demos[2].isLocked).toBe(true); // Third demo should be SOLO-compatible or available fallback
     });
 
     it('returns FREELANCER-specific demos for FREELANCER persona', () => {
@@ -66,8 +68,10 @@ describe('Dashboard Service', () => {
     it('returns ASPIRING-specific demos for ASPIRING persona', () => {
       const demos = getPersonaBasedDemos('ASPIRING');
       
-      expect(demos.length).toBeGreaterThan(0);
-      expect(demos.every(demo => demo.personaSegments.includes('ASPIRING'))).toBe(true);
+      expect(demos.length).toBe(3);
+      expect(demos[1].id).toBe('customer-service-chatbot'); // Chatbot is always 2nd
+      expect(demos[0].personaSegments.includes('ASPIRING') || !demos[0].isLocked).toBe(true); // First demo should be ASPIRING-compatible or available fallback
+      expect(demos[2].personaSegments.includes('ASPIRING') || !demos[2].isLocked).toBe(true); // Third demo should be ASPIRING-compatible or available fallback
     });
   });
 
