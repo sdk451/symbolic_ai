@@ -5,8 +5,8 @@ export interface DemoRunStatus {
   id: string;
   status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
   demoId: string;
-  inputData?: any;
-  outputData?: any;
+  inputData?: Record<string, unknown>;
+  outputData?: Record<string, unknown>;
   errorMessage?: string;
   startedAt?: string;
   completedAt?: string;
@@ -19,7 +19,7 @@ export interface UseDemoExecutionReturn {
   status: DemoRunStatus | null;
   isLoading: boolean;
   error: string | null;
-  startDemo: (demoId: string, inputData?: any) => Promise<{ success: boolean; message: string }>;
+  startDemo: (demoId: string, inputData?: Record<string, unknown>) => Promise<{ success: boolean; message: string }>;
   refreshStatus: () => Promise<void>;
   clearRun: () => void;
 }
@@ -48,7 +48,7 @@ export const useDemoExecution = (): UseDemoExecutionReturn => {
     }
   }, [runId]);
 
-  const startDemo = useCallback(async (demoId: string, inputData?: any) => {
+  const startDemo = useCallback(async (demoId: string, inputData?: Record<string, unknown>) => {
     setIsLoading(true);
     setError(null);
     
@@ -96,7 +96,7 @@ export const useDemoExecution = (): UseDemoExecutionReturn => {
       const interval = setInterval(refreshStatus, 2000); // Poll every 2 seconds
       return () => clearInterval(interval);
     }
-  }, [runId, status?.status, refreshStatus]);
+  }, [runId, status, refreshStatus]);
 
   return {
     runId,

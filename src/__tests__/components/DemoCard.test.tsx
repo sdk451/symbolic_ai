@@ -27,7 +27,7 @@ vi.mock('../../lib/supabase', () => ({
 }));
 
 // Mock window.alert
-const mockAlert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+// const mockAlert = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
 describe('DemoCard with Demo Execution', () => {
   const mockDemo: DemoCardType = {

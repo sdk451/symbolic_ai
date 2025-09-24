@@ -36,46 +36,46 @@ export interface DashboardData {
 // Mock data for demos - in a real app, this would come from a database
 export const mockDemos: DemoCard[] = [
   {
-    id: 'lead-qualification',
-    title: 'AI Lead Qualification Agent',
-    description: 'Experience how our AI agent qualifies leads and schedules appointments automatically',
+    id: 'speed-to-lead-qualification',
+    title: 'AI Speed to Lead Qualification Agent',
+    description: 'Experience how our AI agent qualifies leads and schedules appointments automatically with pre-populated forms and VAPI calls',
     icon: 'Bot',
-    color: 'from-blue-500 to-blue-600',
+    color: 'from-green-500 to-blue-600',
     steps: [
-      'Fill out a sample lead form',
-      'Watch AI analyze and score the lead',
-      'See automatic follow-up sequences',
-      'View calendar integration in action'
+      'Fill out a pre-populated lead form',
+      'Answer the Lead Qualification Agent\'s call',
+      'Let the AI analyze and score the lead',
+      'View call summary and next steps'
     ],
     demoUrl: '#demo-lead-qualification',
     personaSegments: ['SMB', 'EXEC', 'FREELANCER']
   },
   {
-    id: 'customer-service',
+    id: 'customer-service-chatbot',
     title: 'Customer Service Chatbot',
-    description: 'Test our intelligent chatbot that handles customer inquiries with human-like responses',
+    description: 'Test our intelligent chatbot that handles customer inquiries with human-like responses in real-time chat',
     icon: 'MessageCircle',
-    color: 'from-green-500 to-green-600',
+    color: 'from-blue-500 to-purple-600',
     steps: [
+      'Open the chat modal interface',
       'Start a conversation with the AI',
       'Ask common customer questions',
-      'Experience natural language processing',
-      'See escalation to human agents'
+      'Experience real-time responses and escalation'
     ],
     demoUrl: '#demo-chatbot',
     personaSegments: ['SMB', 'EXEC', 'FREELANCER', 'SOLO']
   },
   {
-    id: 'appointment-scheduler',
-    title: 'Smart Appointment Scheduler',
-    description: 'Try our AI-powered scheduling system that manages appointments intelligently',
+    id: 'ai-appointment-scheduler',
+    title: 'AI Appointment Scheduler',
+    description: 'Try our AI-powered scheduling system that calls you and finds available appointment times automatically',
     icon: 'Calendar',
-    color: 'from-purple-500 to-purple-600',
+    color: 'from-purple-500 to-red-600',
     steps: [
-      'Request an appointment via chat',
-      'Watch AI check availability',
-      'See automatic calendar blocking',
-      'Receive confirmation and reminders'
+      'Fill out pre-populated contact form',
+      'Click "Call Me" to initiate VAPI call',
+      'Let AI find available appointment times',
+      'Receive appointment confirmation'
     ],
     demoUrl: '#demo-scheduler',
     personaSegments: ['SMB', 'EXEC', 'FREELANCER', 'SOLO']
@@ -121,25 +121,33 @@ const mockActivities: ActivityItem[] = [
   {
     id: '1',
     type: 'demo_run',
-    title: 'AI Lead Qualification Demo',
-    description: 'Completed demo run - 4/4 steps finished',
+    title: 'AI Speed to Lead Qualification Demo',
+    description: 'Completed demo run - VAPI call and lead scoring finished',
     timestamp: '2024-01-15T10:30:00Z',
     status: 'completed'
   },
   {
     id: '2',
-    type: 'consultation',
-    title: 'Consultation Request',
-    description: 'Scheduled for Jan 20, 2024 at 2:00 PM',
-    timestamp: '2024-01-14T15:45:00Z',
+    type: 'demo_run',
+    title: 'Customer Service Chatbot Demo',
+    description: 'Chat session completed - 8 messages exchanged',
+    timestamp: '2024-01-15T09:15:00Z',
     status: 'completed'
   },
   {
     id: '3',
-    type: 'content_view',
-    title: 'Customer Service Chatbot',
-    description: 'Viewed demo details and documentation',
-    timestamp: '2024-01-13T09:15:00Z',
+    type: 'demo_run',
+    title: 'AI Appointment Scheduler Demo',
+    description: 'Appointment scheduled for Jan 22, 2024 at 3:00 PM',
+    timestamp: '2024-01-14T16:20:00Z',
+    status: 'completed'
+  },
+  {
+    id: '4',
+    type: 'consultation',
+    title: 'Consultation Request',
+    description: 'Scheduled for Jan 20, 2024 at 2:00 PM',
+    timestamp: '2024-01-14T15:45:00Z',
     status: 'completed'
   }
 ];
@@ -210,7 +218,7 @@ export const fetchDashboardData = async (personaSegment: PersonaSegment | null):
   };
 };
 
-export const startDemo = async (demoId: string, inputData?: any): Promise<{ success: boolean; message: string; runId?: string }> => {
+export const startDemo = async (demoId: string, inputData?: Record<string, unknown>): Promise<{ success: boolean; message: string; runId?: string }> => {
   const demo = mockDemos.find(d => d.id === demoId);
   if (!demo) {
     return { success: false, message: 'Demo not found' };
@@ -271,7 +279,7 @@ export const startDemo = async (demoId: string, inputData?: any): Promise<{ succ
 
 export const getDemoRunStatus = async (runId: string): Promise<{ 
   success: boolean; 
-  data?: any; 
+  data?: Record<string, unknown>; 
   message?: string 
 }> => {
   try {

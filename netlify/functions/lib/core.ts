@@ -44,7 +44,7 @@ export const verifyUser = async (req: HonoRequest) => {
 };
 
 // Get Supabase client for authenticated user
-export const sbForUser = (userId: string) => {
+export const sbForUser = () => {
   const supabase = createSupabaseClient();
   return supabase;
 };
@@ -71,7 +71,7 @@ export const hmacVerify = (payload: string, signature: string, secret: string): 
 };
 
 // Audit logging
-export const insertAudit = async (userId: string, action: string, details: any) => {
+export const insertAudit = async (userId: string, action: string, details: Record<string, unknown>) => {
   const supabase = createSupabaseClient();
   
   const { error } = await supabase

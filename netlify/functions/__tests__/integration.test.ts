@@ -54,9 +54,9 @@ const mockSupabase = {
 };
 
 // Mock the Supabase responses
-const mockInsertResponse = vi.fn();
-const mockUpdateResponse = vi.fn();
-const mockSelectResponse = vi.fn();
+// const mockInsertResponse = vi.fn();
+// const mockUpdateResponse = vi.fn();
+// const mockSelectResponse = vi.fn();
 
 describe('Demo Execution Integration Tests', () => {
   beforeEach(() => {
@@ -66,9 +66,9 @@ describe('Demo Execution Integration Tests', () => {
     vi.mocked(core.verifyUser).mockResolvedValue({
       id: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com'
-    } as any);
+    } as Record<string, unknown>);
     
-    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as any);
+    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as Record<string, unknown>);
     vi.mocked(core.checkRateLimit).mockResolvedValue(true);
     vi.mocked(core.recordRateLimitUsage).mockResolvedValue();
     vi.mocked(core.insertAudit).mockResolvedValue();

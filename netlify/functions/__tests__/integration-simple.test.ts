@@ -22,7 +22,7 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
     vi.mocked(core.verifyUser).mockResolvedValue({
       id: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com'
-    } as any);
+    } as Record<string, unknown>);
     
     vi.mocked(core.checkRateLimit).mockResolvedValue(true);
     vi.mocked(core.recordRateLimitUsage).mockResolvedValue();
@@ -82,7 +82,7 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
       }))
     };
     
-    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as any);
+    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as Record<string, unknown>);
   });
 
   describe('API Endpoint Integration', () => {

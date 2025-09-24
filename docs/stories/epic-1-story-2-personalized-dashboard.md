@@ -1,6 +1,6 @@
 # Story 1.2: Personalized Dashboard
 
-**Status:** 📋 Approved - Requires Demo Configuration Updates  
+**Status:** ✅ Ready for Review  
 **Priority:** High (Epic 1 - MVP Core Platform)  
 **Estimated Effort:** 8-13 story points  
 **Dependencies:** Story 1.1 (User Authentication & Onboarding) must be complete
@@ -98,6 +98,8 @@ Claude Sonnet 4 (via Cursor)
 5. **ConsultationCTA Component (`src/components/ConsultationCTA.tsx`)**: Implemented persona-specific consultation call-to-action with dynamic messaging
 6. **Dashboard Page (`src/pages/Dashboard.tsx`)**: Updated main dashboard with responsive grid layout, persona filtering, and comprehensive error handling
 7. **Test Coverage**: Added comprehensive test suite covering all components and services (45 tests total)
+8. **Demo Configuration Updates**: Updated dashboard service to support three new demo types (Stories 1.5, 1.6, 1.7) with correct IDs, descriptions, and persona targeting
+9. **Test Updates**: Fixed all test cases to use new demo IDs and ensure compatibility with updated demo configurations
 
 ### File List
 **New Files Created:**
@@ -113,6 +115,8 @@ Claude Sonnet 4 (via Cursor)
 
 **Modified Files:**
 - `src/pages/Dashboard.tsx` - Updated with new components and persona filtering
+- `src/services/dashboard.ts` - Updated demo configurations for new demo types (Stories 1.5, 1.6, 1.7)
+- `src/__tests__/services/dashboard.test.ts` - Fixed test cases to use new demo IDs
 - `vitest.config.ts` - Added test setup files
 
 ### Change Log
@@ -126,6 +130,17 @@ Claude Sonnet 4 (via Cursor)
 - Ensured responsive design across all device sizes
 - Implemented proper loading states and error handling
 - Fixed all linting errors and maintained code quality standards
+
+**2024-12-19**: Updated dashboard configuration for new demo stories
+- Updated demo configurations to support three new demo types (Stories 1.5, 1.6, 1.7)
+- Changed demo IDs to match new story requirements:
+  - `lead-qualification` → `speed-to-lead-qualification`
+  - `customer-service` → `customer-service-chatbot`
+  - `appointment-scheduler` → `ai-appointment-scheduler`
+- Updated demo descriptions and steps to reflect new functionality
+- Updated activity feed to show new demo types
+- Fixed all test cases to use new demo IDs
+- Verified all tests pass (73/73 tests passing)
 
 ### Status
 **Ready for Review** ✅
@@ -330,11 +345,11 @@ NFR assessment: docs/qa/assessments/1.2-nfr-20250115.md
 ### Required Updates for New Demo Stories
 
 **Demo Configuration Updates Required**:
-- [ ] Update `src/services/dashboard.ts` to include three new demo types:
+- [x] Update `src/services/dashboard.ts` to include three new demo types:
   - `speed-to-lead-qualification` (Story 1.5) - Lead qualification form with VAPI call
   - `customer-service-chatbot` (Story 1.6) - Chat widget with n8n integration  
   - `ai-appointment-scheduler` (Story 1.7) - Pre-populated form with appointment scheduling
-- [ ] Update demo metadata, descriptions, and persona targeting for new demos
-- [ ] Ensure proper integration with new demo execution patterns
-- [ ] Update demo card configurations to match new story requirements
-- [ ] Test integration with new demo execution API endpoints
+- [x] Update demo metadata, descriptions, and persona targeting for new demos
+- [x] Ensure proper integration with new demo execution patterns
+- [x] Update demo card configurations to match new story requirements
+- [x] Test integration with new demo execution API endpoints

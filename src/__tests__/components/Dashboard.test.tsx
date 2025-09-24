@@ -22,7 +22,7 @@ const createMockUser = (overrides: Partial<User> = {}): User => ({
   ...overrides
 });
 
-const createMockProfile = (overrides: any = {}) => ({
+const createMockProfile = (overrides: Record<string, unknown> = {}) => ({
   id: '1',
   full_name: 'Test User',
   phone: null,

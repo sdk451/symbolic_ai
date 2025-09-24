@@ -136,7 +136,7 @@ describe('App', () => {
         user_metadata: {},
         aud: 'authenticated',
         created_at: '2024-01-01T00:00:00Z'
-      } as any,
+      } as Record<string, unknown>,
       profile: { 
         id: '1',
         full_name: 'Test User',
@@ -148,14 +148,14 @@ describe('App', () => {
         organization_size: null,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z'
-      } as any,
+      } as Record<string, unknown>,
       session: {
         access_token: 'mock-token',
         refresh_token: 'mock-refresh',
         expires_in: 3600,
         token_type: 'bearer',
-        user: {} as any
-      } as any,
+        user: {} as Record<string, unknown>
+      } as Record<string, unknown>,
       isAuthenticated: true,
       isEmailVerified: true,
       loading: false,

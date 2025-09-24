@@ -30,7 +30,7 @@ const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = fals
       } else {
         alert(result.message);
       }
-    } catch (err) {
+    } catch {
       alert('Failed to start demo. Please try again.');
     }
   };
@@ -48,7 +48,7 @@ const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = fals
         } else {
           alert(result.message);
         }
-      } catch (err) {
+      } catch {
         alert('Failed to start demo. Please try again.');
       } finally {
         setIsStartingDemo(false);

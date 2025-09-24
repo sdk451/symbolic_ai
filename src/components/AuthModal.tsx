@@ -70,6 +70,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
   // Handle ESC key and focus trap
   useEffect(() => {
+    const timeoutId = emailCheckTimeoutRef.current;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose();
@@ -100,8 +101,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      if (emailCheckTimeoutRef.current) {
-        clearTimeout(emailCheckTimeoutRef.current);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
     };
   }, [isOpen, onClose]);

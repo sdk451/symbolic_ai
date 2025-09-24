@@ -43,9 +43,9 @@ describe('Demo Execution API', () => {
     vi.mocked(core.verifyUser).mockResolvedValue({
       id: 'test-user-id',
       email: 'test@example.com'
-    } as any);
+    } as Record<string, unknown>);
     
-    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as any);
+    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as Record<string, unknown>);
     vi.mocked(core.checkRateLimit).mockResolvedValue(true);
     vi.mocked(core.recordRateLimitUsage).mockResolvedValue();
     vi.mocked(core.insertAudit).mockResolvedValue();

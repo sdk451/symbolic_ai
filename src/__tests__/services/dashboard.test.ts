@@ -207,12 +207,12 @@ describe('Dashboard Service', () => {
         json: () => Promise.resolve({
           id: 'test-run-id',
           status: 'queued',
-          demoId: 'lead-qualification',
+          demoId: 'speed-to-lead-qualification',
           message: 'Demo execution started successfully'
         })
       } as Response);
 
-      const result = await startDemo('lead-qualification');
+      const result = await startDemo('speed-to-lead-qualification');
       
       expect(result.success).toBe(true);
       expect(result.message).toContain('started successfully');
@@ -243,7 +243,7 @@ describe('Dashboard Service', () => {
               json: () => Promise.resolve({
                 id: 'test-run-id',
                 status: 'queued',
-                demoId: 'lead-qualification',
+                demoId: 'speed-to-lead-qualification',
                 message: 'Demo execution started successfully'
               })
             } as Response);
@@ -252,7 +252,7 @@ describe('Dashboard Service', () => {
       );
 
       const startTime = Date.now();
-      await startDemo('lead-qualification');
+      await startDemo('speed-to-lead-qualification');
       const endTime = Date.now();
       
       // Should take at least 300ms due to simulated delay

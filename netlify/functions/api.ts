@@ -189,7 +189,7 @@ app.post('/api/demos/:runId/callback', async (c) => {
     }
     
     const webhookSecret = withEnv('N8N_WEBHOOK_SECRET');
-    const expectedSignature = hmacSign(body, webhookSecret);
+    // const expectedSignature = hmacSign(body, webhookSecret);
     
     if (!hmacVerify(body, signature, webhookSecret)) {
       return c.json({
