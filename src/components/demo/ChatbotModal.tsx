@@ -96,10 +96,12 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Chatbot initialization response:', data);
         setChatSessionId(sessionId);
         // Add bot response from the webhook
-        addMessage(data.response || 'Hello! I\'m your AI customer service assistant. How can I help you today?', 'bot');
+        addMessage(data.response, 'bot');
       } else {
+        console.error('Chatbot initialization error:', response.status, response.statusText);
         addMessage('I\'m having trouble connecting, please try again later.', 'bot');
       }
     } catch (error) {
@@ -146,16 +148,18 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
         headers,
         body: JSON.stringify({
           sessionId: chatSessionId,
-          message: userMessage,
-          action: 'message'
+          chatInput: userMessage,
+          action: 'sendMessage'
         })
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Chatbot response:', data);
         // Add bot response from the webhook
-        addMessage(data.response || "Thank you for your message. I'm processing your request.", 'bot');
+        addMessage(data.response, 'bot');
       } else {
+        console.error('Chatbot API error:', response.status, response.statusText);
         addMessage('I\'m having trouble processing your message, please try again later.', 'bot');
       }
     } catch (error) {

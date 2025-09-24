@@ -158,10 +158,56 @@ export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): Dem
     return mockDemos.filter(demo => !demo.isLocked);
   }
   
-  // Filter demos that include the specified persona segment
-  return mockDemos.filter(demo => 
-    demo.personaSegments.includes(personaSegment)
+  // Get the customer service chatbot (must be 2nd demo)
+  const chatbotDemo = mockDemos.find(demo => demo.id === 'customer-service-chatbot');
+  
+  // Filter other demos that include the specified persona segment (excluding chatbot)
+  const otherDemos = mockDemos.filter(demo => 
+    demo.id !== 'customer-service-chatbot' && 
+    demo.personaSegments.includes(personaSegment) &&
+    !demo.isLocked
   );
+  
+  // Always return exactly 3 demos with chatbot as 2nd
+  const result = [];
+  
+  // Add first demo (or first available if none match)
+  if (otherDemos.length > 0) {
+    result.push(otherDemos[0]);
+  } else {
+    // Fallback to first available demo if no persona-specific demos
+    const fallbackDemo = mockDemos.find(demo => demo.id !== 'customer-service-chatbot' && !demo.isLocked);
+    if (fallbackDemo) result.push(fallbackDemo);
+  }
+  
+  // Add chatbot as 2nd demo (always)
+  if (chatbotDemo) {
+    result.push(chatbotDemo);
+  }
+  
+  // Add third demo (or second available if only one other demo)
+  if (otherDemos.length > 1) {
+    result.push(otherDemos[1]);
+  } else if (otherDemos.length === 1) {
+    // If only one other demo, find another suitable demo
+    const additionalDemo = mockDemos.find(demo => 
+      demo.id !== 'customer-service-chatbot' && 
+      demo.id !== otherDemos[0].id && 
+      !demo.isLocked
+    );
+    if (additionalDemo) result.push(additionalDemo);
+  } else {
+    // If no persona-specific demos, add two more available demos
+    const availableDemos = mockDemos.filter(demo => 
+      demo.id !== 'customer-service-chatbot' && 
+      !demo.isLocked &&
+      !result.some(r => r.id === demo.id)
+    );
+    if (availableDemos.length > 0) result.push(availableDemos[0]);
+    if (availableDemos.length > 1) result.push(availableDemos[1]);
+  }
+  
+  return result;
 };
 
 export const getPersonaBasedConsultationMessage = (personaSegment: PersonaSegment | null): string => {

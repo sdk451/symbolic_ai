@@ -80,7 +80,7 @@ export const handler: Handler = async (event, context) => {
     // Parse request body
     const body = JSON.parse(event.body || '{}');
     console.log('🔐 Request body:', body);
-    const { sessionId, message, action = 'message' } = body;
+    const { sessionId, message, chatInput, action = 'message' } = body;
     
     if (!sessionId) {
       return {
@@ -100,7 +100,7 @@ export const handler: Handler = async (event, context) => {
     // Prepare the payload for n8n
     const webhookPayload = {
       sessionId,
-      message: message || '',
+      chatInput: chatInput || message || '',
       action,
       timestamp: new Date().toISOString(),
       userId: userId
@@ -123,7 +123,7 @@ export const handler: Handler = async (event, context) => {
       });
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
+        setTimeout(() => reject(new Error('Request timeout')), 30000)
       );
       
       const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
@@ -141,7 +141,9 @@ export const handler: Handler = async (event, context) => {
       // Handle different response formats from n8n
       let botResponse = "Thank you for your message. I'm processing your request.";
       
-      if (data.response) {
+      if (data.output) {
+        botResponse = data.output;
+      } else if (data.response) {
         botResponse = data.response;
       } else if (data.message) {
         botResponse = data.message;
@@ -163,7 +165,12 @@ export const handler: Handler = async (event, context) => {
         })
       };
     } catch (fetchError) {
-      console.error('Webhook call failed:', fetchError.message);
+      console.error('Webhook call failed:', fetchError);
+      console.error('Error details:', {
+        message: fetchError.message,
+        stack: fetchError.stack,
+        name: fetchError.name
+      });
       
       // Only show connection error for initialization failures
       if (action === 'initialize') {
