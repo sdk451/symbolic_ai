@@ -98,13 +98,17 @@ export const handler: Handler = async (event, context) => {
     const webhookConfig = getWebhookConfig('customer-service-chatbot');
     
     // Prepare the payload for n8n
-    const webhookPayload = {
+    const webhookPayload: any = {
       sessionId,
-      chatInput: chatInput || message || '',
       action,
       timestamp: new Date().toISOString(),
       userId: userId
     };
+    
+    // Only add chatInput for sendMessage actions
+    if (action === 'sendMessage' && (chatInput || message)) {
+      webhookPayload.chatInput = chatInput || message;
+    }
     
     // Call n8n webhook with timeout and error handling
     try {
