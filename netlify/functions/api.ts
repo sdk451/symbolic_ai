@@ -6,11 +6,10 @@ import {
   verifyUser, 
   sbForUser, 
   insertAudit, 
-  hmacSign, 
-  hmacVerify, 
   withEnv,
   checkRateLimit,
-  recordRateLimitUsage
+  recordRateLimitUsage,
+  getWebhookConfig
 } from './lib/core';
 import { 
   DemoExecutionRequestSchema,
@@ -133,9 +132,8 @@ app.post('/api/demos/:demoId/run', async (c) => {
       inputData: validatedInputData
     });
     
-    // Call n8n webhook (async)
-    const n8nWebhookUrl = withEnv('N8N_WEBHOOK_URL');
-    const webhookSecret = withEnv('N8N_WEBHOOK_SECRET');
+    // Get webhook configuration for this demo type
+    const webhookConfig = getWebhookConfig(demoId);
     
     const webhookPayload = {
       runId: demoRun.id,
@@ -152,16 +150,22 @@ app.post('/api/demos/:demoId/run', async (c) => {
     };
     
     const payloadString = JSON.stringify(webhookPayload);
-    const signature = hmacSign(payloadString, webhookSecret);
+    
+    // Prepare headers with basic auth
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    // Add basic auth if username and password are provided
+    if (webhookConfig.username && webhookConfig.password) {
+      const auth = Buffer.from(`${webhookConfig.username}:${webhookConfig.password}`).toString('base64');
+      headers['Authorization'] = `Basic ${auth}`;
+    }
     
     // Fire and forget - n8n will call back with results
-    fetch(n8nWebhookUrl, {
+    fetch(webhookConfig.url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Signature': signature,
-        'X-Timestamp': new Date().toISOString()
-      },
+      headers,
       body: payloadString
     }).catch(error => {
       console.error('Failed to call n8n webhook:', error);
@@ -212,55 +216,10 @@ app.post('/api/demos/:runId/callback', async (c) => {
   try {
     const runId = c.req.param('runId');
     
-    // Verify HMAC signature
-    const signature = c.req.header('X-Signature');
-    const timestamp = c.req.header('X-Timestamp');
+    // Parse request body
     const body = await c.req.text();
     
-    if (!signature || !timestamp) {
-      return c.json({
-        error: 'Missing signature or timestamp',
-        message: 'HMAC verification failed',
-        code: 'MISSING_SIGNATURE'
-      }, 401);
-    }
-    
-    const webhookSecret = withEnv('N8N_WEBHOOK_SECRET');
-    // const expectedSignature = hmacSign(body, webhookSecret);
-    
-    if (!hmacVerify(body, signature, webhookSecret)) {
-      return c.json({
-        error: 'Invalid signature',
-        message: 'HMAC verification failed',
-        code: 'INVALID_SIGNATURE'
-      }, 401);
-    }
-    
-    // Check timestamp to prevent replay attacks (5 minute window)
-    const requestTime = new Date(timestamp).getTime();
-    const currentTime = Date.now();
-    const timeDiff = Math.abs(currentTime - requestTime);
-    
-    if (timeDiff > 5 * 60 * 1000) { // 5 minutes
-      return c.json({
-        error: 'Request too old',
-        message: 'Timestamp is outside acceptable window',
-        code: 'TIMESTAMP_TOO_OLD'
-      }, 401);
-    }
-    
-    // Parse callback payload
-    const callbackData = CallbackPayloadSchema.parse(JSON.parse(body));
-    
-    if (callbackData.runId !== runId) {
-      return c.json({
-        error: 'Run ID mismatch',
-        message: 'Callback run ID does not match URL parameter',
-        code: 'RUN_ID_MISMATCH'
-      }, 400);
-    }
-    
-    // Get demo run to determine demo type for output validation
+    // Get the demo run to validate it exists
     const supabase = sbForUser();
     const { data: demoRun, error: fetchError } = await supabase
       .from('demo_runs')
@@ -275,6 +234,19 @@ app.post('/api/demos/:runId/callback', async (c) => {
         code: 'DEMO_RUN_NOT_FOUND'
       }, 404);
     }
+    
+    // Parse callback payload
+    const callbackData = CallbackPayloadSchema.parse(JSON.parse(body));
+    
+    if (callbackData.runId !== runId) {
+      return c.json({
+        error: 'Run ID mismatch',
+        message: 'Callback run ID does not match URL parameter',
+        code: 'RUN_ID_MISMATCH'
+      }, 400);
+    }
+    
+    // We already have the demo run from the validation above
     
     // Validate demo-specific output data if provided
     let validatedOutputData: Record<string, unknown> = {};

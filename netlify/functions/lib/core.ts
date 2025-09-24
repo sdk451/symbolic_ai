@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { HonoRequest } from 'hono';
-import crypto from 'crypto-js';
 
 // Environment variables
 export const withEnv = (key: string): string => {
@@ -9,6 +8,25 @@ export const withEnv = (key: string): string => {
     throw new Error(`Missing environment variable: ${key}`);
   }
   return value;
+};
+
+// Get webhook configuration for specific demo types
+export const getWebhookConfig = (demoId: string) => {
+  // For customer-service-chatbot, use the specific webhook
+  if (demoId === 'customer-service-chatbot') {
+    return {
+      url: 'https://n8n.srv995431.hstgr.cloud/webhook/0c43d2e2-2990-4e61-9d0b-4f5a98e6dab5/chat',
+      username: 'symbolic_ai',
+      password: 'test1234'
+    };
+  }
+  
+  // For other demos, use default configuration
+  return {
+    url: withEnv('N8N_WEBHOOK_URL'),
+    username: process.env.N8N_WEBHOOK_USERNAME || '',
+    password: process.env.N8N_WEBHOOK_PASSWORD || ''
+  };
 };
 
 // Supabase client for server-side operations
@@ -49,26 +67,6 @@ export const sbForUser = () => {
   return supabase;
 };
 
-// HMAC signing for webhook security
-export const hmacSign = (payload: string, secret: string): string => {
-  return crypto.HmacSHA256(payload, secret).toString();
-};
-
-// HMAC verification for webhook security
-export const hmacVerify = (payload: string, signature: string, secret: string): boolean => {
-  const expectedSignature = hmacSign(payload, secret);
-  // Use constant-time comparison to prevent timing attacks
-  if (signature.length !== expectedSignature.length) {
-    return false;
-  }
-  
-  let result = 0;
-  for (let i = 0; i < signature.length; i++) {
-    result |= signature.charCodeAt(i) ^ expectedSignature.charCodeAt(i);
-  }
-  
-  return result === 0;
-};
 
 // Audit logging
 export const insertAudit = async (userId: string, action: string, details: Record<string, unknown>) => {

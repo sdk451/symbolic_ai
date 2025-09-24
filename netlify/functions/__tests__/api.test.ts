@@ -7,11 +7,10 @@ vi.mock('../lib/core', () => ({
   verifyUser: vi.fn(),
   sbForUser: vi.fn(),
   insertAudit: vi.fn(),
-  hmacSign: vi.fn(),
-  hmacVerify: vi.fn(),
   withEnv: vi.fn(),
   checkRateLimit: vi.fn(),
-  recordRateLimitUsage: vi.fn()
+  recordRateLimitUsage: vi.fn(),
+  getWebhookConfig: vi.fn()
 }));
 
 // Mock Supabase
@@ -29,8 +28,10 @@ const mockSupabase = {
       eq: vi.fn(() => ({
         eq: vi.fn(() => ({
           single: vi.fn()
-        }))
-      }))
+        })),
+        single: vi.fn()
+      })),
+      single: vi.fn()
     }))
   }))
 };
@@ -40,14 +41,21 @@ describe('Demo Execution API', () => {
     vi.clearAllMocks();
     
     // Setup default mocks
+    // @ts-expect-error - Test mock, type mismatch is acceptable
     vi.mocked(core.verifyUser).mockResolvedValue({
       id: 'test-user-id',
       email: 'test@example.com'
-    } as Record<string, unknown>);
+    });
     
-    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as Record<string, unknown>);
+    // @ts-expect-error - Test mock, type mismatch is acceptable
+    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase);
     vi.mocked(core.checkRateLimit).mockResolvedValue(true);
     vi.mocked(core.recordRateLimitUsage).mockResolvedValue();
+    vi.mocked(core.getWebhookConfig).mockReturnValue({
+      url: 'https://test-webhook.com',
+      username: 'test',
+      password: 'test'
+    });
     vi.mocked(core.insertAudit).mockResolvedValue();
     vi.mocked(core.withEnv).mockImplementation((key) => {
       const envVars: Record<string, string> = {
@@ -56,8 +64,6 @@ describe('Demo Execution API', () => {
       };
       return envVars[key] || 'test-value';
     });
-    vi.mocked(core.hmacSign).mockReturnValue('test-signature');
-    vi.mocked(core.hmacVerify).mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -86,7 +92,9 @@ describe('Demo Execution API', () => {
       });
       
       mockSupabase.from.mockReturnValue({
-        insert: mockInsert
+        insert: mockInsert,
+        update: mockSupabase.from().update,
+        select: mockSupabase.from().select
       });
 
       // Mock fetch for n8n webhook call
@@ -124,12 +132,12 @@ describe('Demo Execution API', () => {
       
       // Verify n8n webhook was called
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://n8n.example.com/webhook',
+        'https://test-webhook.com',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'X-Signature': 'test-signature'
+            'Authorization': 'Basic dGVzdDp0ZXN0'
           })
         })
       );
@@ -217,7 +225,8 @@ describe('Demo Execution API', () => {
       
       mockSupabase.from.mockReturnValue({
         select: mockSelect,
-        update: mockUpdate
+        update: mockUpdate,
+        insert: mockSupabase.from().insert
       });
 
       const callbackPayload = {
@@ -254,51 +263,25 @@ describe('Demo Execution API', () => {
       expect(mockSupabase.from).toHaveBeenCalledWith('demo_runs');
     });
 
-    it('should return 401 for invalid HMAC signature', async () => {
-      vi.mocked(core.hmacVerify).mockReturnValue(false);
 
-      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/callback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Signature': 'invalid-signature',
-          'X-Timestamp': new Date().toISOString()
-        },
-        body: JSON.stringify({
-          runId: '550e8400-e29b-41d4-a716-446655440000',
-          status: 'succeeded'
-        })
-      });
-
-      const response = await handler(request);
-      const result = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(result.error).toBe('Invalid signature');
-      expect(result.code).toBe('INVALID_SIGNATURE');
-    });
-
-    it('should return 401 for missing signature', async () => {
-      const request = new Request('http://localhost/api/demos/test-run-id/callback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          runId: 'test-run-id',
-          status: 'succeeded'
-        })
-      });
-
-      const response = await handler(request);
-      const result = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(result.error).toBe('Missing signature or timestamp');
-      expect(result.code).toBe('MISSING_SIGNATURE');
-    });
 
     it('should return 400 for run ID mismatch', async () => {
+      // Mock the Supabase query for getting demo_id
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { demo_id: 'test-demo' },
+            error: null
+          })
+        })
+      });
+      
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+        insert: mockSupabase.from().insert,
+        update: mockSupabase.from().update
+      });
+      
       const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/callback', {
         method: 'POST',
         headers: {
@@ -350,7 +333,9 @@ describe('Demo Execution API', () => {
       });
       
       mockSupabase.from.mockReturnValue({
-        select: mockSelect
+        select: mockSelect,
+        insert: mockSupabase.from().insert,
+        update: mockSupabase.from().update
       });
 
       const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/status', {
@@ -383,7 +368,9 @@ describe('Demo Execution API', () => {
       });
       
       mockSupabase.from.mockReturnValue({
-        select: mockSelect
+        select: mockSelect,
+        insert: mockSupabase.from().insert,
+        update: mockSupabase.from().update
       });
 
       const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440002/status', {

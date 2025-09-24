@@ -7,11 +7,10 @@ vi.mock('../lib/core', () => ({
   verifyUser: vi.fn(),
   sbForUser: vi.fn(),
   insertAudit: vi.fn(),
-  hmacSign: vi.fn(),
-  hmacVerify: vi.fn(),
   withEnv: vi.fn(),
   checkRateLimit: vi.fn(),
-  recordRateLimitUsage: vi.fn()
+  recordRateLimitUsage: vi.fn(),
+  getWebhookConfig: vi.fn()
 }));
 
 // Mock Supabase with proper call tracking
@@ -74,6 +73,11 @@ describe('Demo Execution Integration Tests', () => {
     vi.mocked(core.checkRateLimit).mockResolvedValue(true);
     vi.mocked(core.recordRateLimitUsage).mockResolvedValue();
     vi.mocked(core.insertAudit).mockResolvedValue();
+    vi.mocked(core.getWebhookConfig).mockReturnValue({
+      url: 'https://test-webhook.com',
+      username: 'test',
+      password: 'test'
+    });
     vi.mocked(core.withEnv).mockImplementation((key) => {
       const envVars: Record<string, string> = {
         'N8N_WEBHOOK_URL': 'https://n8n.example.com/webhook',
@@ -81,8 +85,6 @@ describe('Demo Execution Integration Tests', () => {
       };
       return envVars[key] || 'test-value';
     });
-    vi.mocked(core.hmacSign).mockReturnValue('test-signature');
-    vi.mocked(core.hmacVerify).mockReturnValue(true);
     
     // Setup default mock responses
     mockInsert().select().single.mockResolvedValue({
@@ -170,12 +172,12 @@ describe('Demo Execution Integration Tests', () => {
       
       // Verify n8n webhook was called
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://n8n.example.com/webhook',
+        'https://test-webhook.com',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'X-Signature': 'test-signature'
+            'Authorization': 'Basic dGVzdDp0ZXN0'
           })
         })
       );
