@@ -17,7 +17,10 @@ import {
   DemoRunResponseSchema,
   CallbackPayloadSchema,
   RateLimitConfig,
-  ErrorResponseSchema
+  ErrorResponseSchema,
+  validateDemoInput,
+  validateDemoOutput,
+  DEMO_CONFIGS
 } from './lib/schemas';
 
 const app = new Hono();
@@ -72,8 +75,36 @@ app.post('/api/demos/:demoId/run', async (c) => {
       ...body
     });
     
+    // Validate demo ID exists in configuration
+    const demoConfig = DEMO_CONFIGS[demoId as keyof typeof DEMO_CONFIGS];
+    if (!demoConfig) {
+      return c.json({
+        error: 'Invalid Demo ID',
+        message: `Demo type '${demoId}' is not supported`,
+        code: 'INVALID_DEMO_ID'
+      }, 400);
+    }
+    
+    // Validate demo-specific input data
+    let validatedInputData: Record<string, unknown> = {};
+    if (requestData.inputData) {
+      try {
+        validatedInputData = validateDemoInput(demoId, requestData.inputData);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          return c.json({
+            error: 'Validation Error',
+            message: 'Invalid input data for this demo type',
+            code: 'VALIDATION_ERROR',
+            details: validationError.errors
+          }, 400);
+        }
+        throw validationError;
+      }
+    }
+    
     // Get Supabase client
-    const supabase = sbForUser(user.id);
+    const supabase = sbForUser();
     
     // Create demo run record
     const { data: demoRun, error: insertError } = await supabase
@@ -82,7 +113,7 @@ app.post('/api/demos/:demoId/run', async (c) => {
         user_id: user.id,
         demo_id: demoId,
         status: 'queued',
-        input_data: requestData.inputData || {},
+        input_data: validatedInputData,
         created_at: new Date().toISOString()
       })
       .select()
@@ -99,7 +130,7 @@ app.post('/api/demos/:demoId/run', async (c) => {
     await insertAudit(user.id, 'demo_execution_started', {
       demoId,
       runId: demoRun.id,
-      inputData: requestData.inputData
+      inputData: validatedInputData
     });
     
     // Call n8n webhook (async)
@@ -110,7 +141,13 @@ app.post('/api/demos/:demoId/run', async (c) => {
       runId: demoRun.id,
       userId: user.id,
       demoId,
-      inputData: requestData.inputData,
+      demoConfig: {
+        name: demoConfig.name,
+        description: demoConfig.description,
+        timeout: demoConfig.timeout,
+        maxRetries: demoConfig.maxRetries
+      },
+      inputData: validatedInputData,
       timestamp: new Date().toISOString()
     };
     
@@ -145,7 +182,7 @@ app.post('/api/demos/:demoId/run', async (c) => {
       status: 'queued',
       demoId,
       message: 'Demo execution started successfully',
-      estimatedDuration: 120 // 2 minutes default
+      estimatedDuration: demoConfig.timeout
     });
     
     return c.json(response, 202);
@@ -223,15 +260,46 @@ app.post('/api/demos/:runId/callback', async (c) => {
       }, 400);
     }
     
-    // Get Supabase client (service role for callbacks)
-    const supabase = sbForUser('service');
+    // Get demo run to determine demo type for output validation
+    const supabase = sbForUser();
+    const { data: demoRun, error: fetchError } = await supabase
+      .from('demo_runs')
+      .select('demo_id')
+      .eq('id', runId)
+      .single();
+    
+    if (fetchError || !demoRun) {
+      return c.json({
+        error: 'Demo run not found',
+        message: 'The specified demo run does not exist',
+        code: 'DEMO_RUN_NOT_FOUND'
+      }, 404);
+    }
+    
+    // Validate demo-specific output data if provided
+    let validatedOutputData: Record<string, unknown> = {};
+    if (callbackData.outputData) {
+      try {
+        validatedOutputData = validateDemoOutput(demoRun.demo_id, callbackData.outputData);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          return c.json({
+            error: 'Validation Error',
+            message: 'Invalid output data for this demo type',
+            code: 'VALIDATION_ERROR',
+            details: validationError.errors
+          }, 400);
+        }
+        throw validationError;
+      }
+    }
     
     // Update demo run with results
     const { error: updateError } = await supabase
       .from('demo_runs')
       .update({
         status: callbackData.status,
-        output_data: callbackData.outputData,
+        output_data: validatedOutputData,
         error_message: callbackData.errorMessage,
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -280,7 +348,7 @@ app.get('/api/demos/:runId/status', async (c) => {
     const user = await verifyUser(c.req);
     const runId = c.req.param('runId');
     
-    const supabase = sbForUser(user.id);
+    const supabase = sbForUser();
     
     const { data: demoRun, error } = await supabase
       .from('demo_runs')

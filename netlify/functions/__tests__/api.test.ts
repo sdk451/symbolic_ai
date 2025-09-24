@@ -95,14 +95,19 @@ describe('Demo Execution API', () => {
         json: () => Promise.resolve({ success: true })
       });
 
-      const request = new Request('http://localhost/api/demos/550e8400-e29b-41d4-a716-446655440000/run', {
+      const request = new Request('http://localhost/api/demos/speed-to-lead-qualification/run', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer test-token'
         },
         body: JSON.stringify({
-          inputData: { test: 'data' }
+          inputData: { 
+            name: 'John Doe',
+            email: 'john@example.com',
+            phone: '+1234567890',
+            request: 'I need help with lead qualification'
+          }
         })
       });
 
@@ -193,6 +198,16 @@ describe('Demo Execution API', () => {
 
   describe('POST /api/demos/:runId/callback', () => {
     it('should successfully process n8n callback', async () => {
+      // Setup the mock chain for select (to get demo_id)
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { demo_id: 'speed-to-lead-qualification' },
+            error: null
+          })
+        })
+      });
+      
       // Setup the mock chain for update
       const mockUpdate = vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({
@@ -201,13 +216,20 @@ describe('Demo Execution API', () => {
       });
       
       mockSupabase.from.mockReturnValue({
+        select: mockSelect,
         update: mockUpdate
       });
 
       const callbackPayload = {
         runId: '550e8400-e29b-41d4-a716-446655440000',
         status: 'succeeded',
-        outputData: { result: 'success' },
+        outputData: { 
+          callId: 'call-123',
+          duration: 120,
+          qualificationScore: 85,
+          summary: 'Lead qualified successfully',
+          nextSteps: ['Schedule follow-up call', 'Send proposal']
+        },
         executionTime: 1500
       };
 

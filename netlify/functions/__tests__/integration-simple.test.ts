@@ -19,10 +19,11 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
     vi.clearAllMocks();
     
     // Setup default mocks
+    // @ts-expect-error - Test mock, type mismatch is acceptable
     vi.mocked(core.verifyUser).mockResolvedValue({
       id: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com'
-    } as Record<string, unknown>);
+    });
     
     vi.mocked(core.checkRateLimit).mockResolvedValue(true);
     vi.mocked(core.recordRateLimitUsage).mockResolvedValue();
@@ -67,10 +68,21 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
                 data: {
                   id: '550e8400-e29b-41d4-a716-446655440001',
                   user_id: '550e8400-e29b-41d4-a716-446655440000',
-                  demo_id: 'test-demo',
+                  demo_id: 'speed-to-lead-qualification',
                   status: 'succeeded',
-                  input_data: { test: 'data' },
-                  output_data: { result: 'success' },
+                  input_data: { 
+                    name: 'John Doe',
+                    email: 'john@example.com',
+                    phone: '+1234567890',
+                    request: 'I need help with lead qualification'
+                  },
+                  output_data: { 
+                    callId: 'call-123',
+                    duration: 120,
+                    qualificationScore: 85,
+                    summary: 'Lead qualified successfully',
+                    nextSteps: ['Schedule follow-up call', 'Send proposal']
+                  },
                   created_at: new Date().toISOString(),
                   updated_at: new Date().toISOString()
                 },
@@ -82,7 +94,8 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
       }))
     };
     
-    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as Record<string, unknown>);
+    // @ts-expect-error - Test mock, type mismatch is acceptable
+    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase);
   });
 
   describe('API Endpoint Integration', () => {
@@ -93,14 +106,19 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
         json: () => Promise.resolve({ success: true })
       });
 
-      const request = new Request('http://localhost/api/demos/test-demo/run', {
+      const request = new Request('http://localhost/api/demos/speed-to-lead-qualification/run', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer test-token'
         },
         body: JSON.stringify({
-          inputData: { test: 'data' }
+          inputData: { 
+            name: 'John Doe',
+            email: 'john@example.com',
+            phone: '+1234567890',
+            request: 'I need help with lead qualification'
+          }
         })
       });
 
@@ -114,10 +132,41 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
     });
 
     it('should handle callback request with HMAC verification', async () => {
+      // Setup the mock chain for select (to get demo_id)
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { demo_id: 'speed-to-lead-qualification' },
+            error: null
+          })
+        })
+      });
+      
+      // Setup the mock chain for update
+      const mockUpdate = vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          error: null
+        })
+      });
+      
+      // @ts-expect-error - Test mock, type mismatch is acceptable
+      vi.mocked(core.sbForUser).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          select: mockSelect,
+          update: mockUpdate
+        })
+      });
+
       const callbackPayload = {
         runId: '550e8400-e29b-41d4-a716-446655440001',
         status: 'succeeded',
-        outputData: { result: 'success' },
+        outputData: { 
+          callId: 'call-123',
+          duration: 120,
+          qualificationScore: 85,
+          summary: 'Lead qualified successfully',
+          nextSteps: ['Schedule follow-up call', 'Send proposal']
+        },
         executionTime: 1500
       };
 
@@ -153,7 +202,13 @@ describe('Demo Execution Integration Tests (Simplified)', () => {
       expect(response.status).toBe(200);
       expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440001');
       expect(result.status).toBe('succeeded');
-      expect(result.outputData).toEqual({ result: 'success' });
+      expect(result.outputData).toEqual({ 
+        callId: 'call-123',
+        duration: 120,
+        qualificationScore: 85,
+        summary: 'Lead qualified successfully',
+        nextSteps: ['Schedule follow-up call', 'Send proposal']
+      });
     });
   });
 

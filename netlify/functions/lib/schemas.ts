@@ -13,6 +13,51 @@ export const DemoExecutionRequestSchema = z.object({
   }).optional()
 });
 
+// Demo-specific input schemas
+export const SpeedToLeadQualificationInputSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Valid email is required'),
+  phone: z.string().min(10, 'Valid phone number is required'),
+  request: z.string().min(1, 'Request description is required')
+});
+
+export const CustomerServiceChatbotInputSchema = z.object({
+  sessionId: z.string().optional(),
+  messageCount: z.number().default(0),
+  startTime: z.string().optional()
+});
+
+export const AIAppointmentSchedulerInputSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  phone: z.string().min(10, 'Valid phone number is required'),
+  email: z.string().email('Valid email is required'),
+  requestedTime: z.string().optional()
+});
+
+// Demo-specific output schemas
+export const SpeedToLeadQualificationOutputSchema = z.object({
+  callId: z.string(),
+  duration: z.number(),
+  qualificationScore: z.number().min(0).max(100),
+  summary: z.string(),
+  nextSteps: z.array(z.string())
+});
+
+export const CustomerServiceChatbotOutputSchema = z.object({
+  totalMessages: z.number(),
+  avgResponseTime: z.number(),
+  userSatisfaction: z.number().min(1).max(5),
+  conversationSummary: z.string()
+});
+
+export const AIAppointmentSchedulerOutputSchema = z.object({
+  appointmentId: z.string(),
+  scheduledTime: z.string(),
+  duration: z.number(),
+  confirmationCode: z.string(),
+  calendarLink: z.string().url()
+});
+
 // Demo run response schema
 export const DemoRunResponseSchema = z.object({
   id: z.string().uuid(),
@@ -64,6 +109,67 @@ export const DemoConfigSchema = z.object({
   requiresAuth: z.boolean().default(true),
   allowedPersonas: z.array(z.string()).optional()
 });
+
+// Demo type validation function
+export const validateDemoInput = (demoId: string, inputData: Record<string, unknown>) => {
+  switch (demoId) {
+    case 'speed-to-lead-qualification':
+      return SpeedToLeadQualificationInputSchema.parse(inputData);
+    case 'customer-service-chatbot':
+      return CustomerServiceChatbotInputSchema.parse(inputData);
+    case 'ai-appointment-scheduler':
+      return AIAppointmentSchedulerInputSchema.parse(inputData);
+    default:
+      // For other demo types, use generic validation
+      return inputData;
+  }
+};
+
+// Demo type output validation function
+export const validateDemoOutput = (demoId: string, outputData: Record<string, unknown>) => {
+  switch (demoId) {
+    case 'speed-to-lead-qualification':
+      return SpeedToLeadQualificationOutputSchema.parse(outputData);
+    case 'customer-service-chatbot':
+      return CustomerServiceChatbotOutputSchema.parse(outputData);
+    case 'ai-appointment-scheduler':
+      return AIAppointmentSchedulerOutputSchema.parse(outputData);
+    default:
+      // For other demo types, use generic validation
+      return outputData;
+  }
+};
+
+// Demo configuration registry
+export const DEMO_CONFIGS = {
+  'speed-to-lead-qualification': {
+    id: 'speed-to-lead-qualification',
+    name: 'AI Speed to Lead Qualification Agent',
+    description: 'Experience how our AI agent qualifies leads and schedules appointments automatically',
+    timeout: 300, // 5 minutes for VAPI calls
+    maxRetries: 2,
+    requiresAuth: true,
+    allowedPersonas: ['SMB', 'EXEC', 'FREELANCER']
+  },
+  'customer-service-chatbot': {
+    id: 'customer-service-chatbot',
+    name: 'Customer Service Chatbot',
+    description: 'Test our intelligent chatbot that handles customer inquiries with human-like responses',
+    timeout: 180, // 3 minutes for chat sessions
+    maxRetries: 3,
+    requiresAuth: true,
+    allowedPersonas: ['SMB', 'EXEC', 'FREELANCER', 'SOLO']
+  },
+  'ai-appointment-scheduler': {
+    id: 'ai-appointment-scheduler',
+    name: 'AI Appointment Scheduler',
+    description: 'Try our AI-powered scheduling system that calls you and finds available appointment times',
+    timeout: 300, // 5 minutes for VAPI calls
+    maxRetries: 2,
+    requiresAuth: true,
+    allowedPersonas: ['SMB', 'EXEC', 'FREELANCER', 'SOLO']
+  }
+} as const;
 
 // Error response schema
 export const ErrorResponseSchema = z.object({

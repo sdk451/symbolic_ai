@@ -63,12 +63,14 @@ describe('Demo Execution Integration Tests', () => {
     vi.clearAllMocks();
     
     // Setup default mocks
+    // @ts-expect-error - Test mock, type mismatch is acceptable
     vi.mocked(core.verifyUser).mockResolvedValue({
       id: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com'
-    } as Record<string, unknown>);
+    });
     
-    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase as Record<string, unknown>);
+    // @ts-expect-error - Test mock, type mismatch is acceptable
+    vi.mocked(core.sbForUser).mockReturnValue(mockSupabase);
     vi.mocked(core.checkRateLimit).mockResolvedValue(true);
     vi.mocked(core.recordRateLimitUsage).mockResolvedValue();
     vi.mocked(core.insertAudit).mockResolvedValue();
@@ -120,7 +122,7 @@ describe('Demo Execution Integration Tests', () => {
 
   describe('Complete Demo Execution Flow', () => {
     it('should execute complete demo flow: start → n8n webhook → callback → status update', async () => {
-      const demoId = 'test-demo';
+      const demoId = 'speed-to-lead-qualification';
       const runId = '550e8400-e29b-41d4-a716-446655440001';
       
       // Step 1: Start demo execution
@@ -150,7 +152,12 @@ describe('Demo Execution Integration Tests', () => {
           'Authorization': 'Bearer test-token'
         },
         body: JSON.stringify({
-          inputData: { test: 'data' }
+          inputData: { 
+            name: 'John Doe',
+            email: 'john@example.com',
+            phone: '+1234567890',
+            request: 'I need help with lead qualification'
+          }
         })
       });
 
@@ -174,14 +181,36 @@ describe('Demo Execution Integration Tests', () => {
       );
 
       // Step 2: Simulate n8n callback with success
+      // Mock select for getting demo_id
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { demo_id: demoId },
+            error: null
+          })
+        })
+      });
+      
       mockUpdate().eq.mockResolvedValue({
         error: null
+      });
+      
+      mockSupabase.from.mockReturnValue({
+        insert: mockInsert,
+        select: mockSelect,
+        update: mockUpdate
       });
 
       const callbackPayload = {
         runId,
         status: 'succeeded',
-        outputData: { result: 'Demo completed successfully' },
+        outputData: { 
+          callId: 'call-123',
+          duration: 120,
+          qualificationScore: 85,
+          summary: 'Lead qualified successfully',
+          nextSteps: ['Schedule follow-up call', 'Send proposal']
+        },
         executionTime: 1500
       };
 
@@ -249,7 +278,7 @@ describe('Demo Execution Integration Tests', () => {
     });
 
     it('should handle demo execution failure flow', async () => {
-      const demoId = 'test-demo';
+      const demoId = 'speed-to-lead-qualification';
       const runId = '550e8400-e29b-41d4-a716-446655440001';
       
       // Step 1: Start demo execution
@@ -279,7 +308,12 @@ describe('Demo Execution Integration Tests', () => {
           'Authorization': 'Bearer test-token'
         },
         body: JSON.stringify({
-          inputData: { test: 'data' }
+          inputData: { 
+            name: 'John Doe',
+            email: 'john@example.com',
+            phone: '+1234567890',
+            request: 'I need help with lead qualification'
+          }
         })
       });
 
@@ -287,8 +321,24 @@ describe('Demo Execution Integration Tests', () => {
       expect(startResponse.status).toBe(202);
 
       // Step 2: Simulate n8n callback with failure
+      // Mock select for getting demo_id
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { demo_id: demoId },
+            error: null
+          })
+        })
+      });
+      
       mockUpdate().eq.mockResolvedValue({
         error: null
+      });
+      
+      mockSupabase.from.mockReturnValue({
+        insert: mockInsert,
+        select: mockSelect,
+        update: mockUpdate
       });
 
       const callbackPayload = {
@@ -362,7 +412,7 @@ describe('Demo Execution Integration Tests', () => {
 
   describe('Rate Limiting Integration', () => {
     it('should enforce rate limiting across multiple demo executions', async () => {
-      const demoId = 'test-demo';
+      const demoId = 'speed-to-lead-qualification';
       
       // First execution should succeed
       vi.mocked(core.checkRateLimit).mockResolvedValueOnce(true);

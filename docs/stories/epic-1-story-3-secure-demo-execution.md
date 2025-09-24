@@ -1,6 +1,6 @@
 # Story 1.3: Secure Demo Execution System
 
-**Status:** 📋 Approved - Requires API Endpoint Extensions  
+**Status:** ✅ Ready for Review  
 **Priority:** High (Epic 1 - MVP Core Platform)  
 **Estimated Effort:** 13-21 story points  
 **Dependencies:** Story 1.2 (Personalized Dashboard) must be complete
@@ -102,6 +102,13 @@ Claude Sonnet 4 (via Cursor)
 - ✅ Cleaned up and consolidated test files (removed duplicate DemoCard tests)
 - ✅ Fixed all TypeScript errors in Dashboard.test.tsx
 - ✅ Enhanced test coverage with missing tests (isLoading prop, icon rendering)
+- ✅ Extended API endpoints to support three new demo types (Stories 1.5, 1.6, 1.7)
+- ✅ Added demo-specific validation schemas for input/output data
+- ✅ Implemented demo configuration registry with timeout and retry settings
+- ✅ Enhanced webhook payloads with demo configuration metadata
+- ✅ Updated all test suites to work with new demo types and validation
+- ✅ Fixed Supabase mocking issues in integration tests
+- ✅ All tests passing (73/73) with comprehensive coverage
 
 ### File List
 **New Files:**
@@ -114,7 +121,11 @@ Claude Sonnet 4 (via Cursor)
 - `src/__tests__/components/DemoCard.test.tsx` - Consolidated component tests (replaced old version)
 
 **Modified Files:**
-- `netlify/functions/api.ts` - Added demo execution endpoints
+- `netlify/functions/api.ts` - Added demo execution endpoints and demo-specific validation
+- `netlify/functions/lib/schemas.ts` - Added demo-specific validation schemas and configuration registry
+- `netlify/functions/__tests__/api.test.ts` - Updated tests to use new demo types and validation
+- `netlify/functions/__tests__/integration.test.ts` - Fixed Supabase mocking and updated demo types
+- `netlify/functions/__tests__/integration-simple.test.ts` - Fixed Supabase mocking and updated demo types
 - `src/services/dashboard.ts` - Updated startDemo function for API integration
 - `src/components/DemoCard.tsx` - Added real-time status display and execution integration
 - `src/__tests__/components/Dashboard.test.tsx` - Fixed TypeScript errors and improved type safety
@@ -138,9 +149,16 @@ Claude Sonnet 4 (via Cursor)
     - Enhanced test coverage with missing tests (isLoading prop, icon rendering)
     - Added missing icon mocks to vitest setup
     - All frontend tests now passing (54/54) with 100% success rate
+  - **2025-01-15**: Extended API endpoints for new demo types (Stories 1.5, 1.6, 1.7)
+    - Added demo-specific validation schemas for input/output data
+    - Implemented demo configuration registry with timeout and retry settings
+    - Enhanced webhook payloads with demo configuration metadata
+    - Updated all test suites to work with new demo types and validation
+    - Fixed Supabase mocking issues in integration tests
+    - All tests passing (73/73) with comprehensive coverage
 
 ### Status
-✅ Completed - All tasks done, tests cleaned up and fixed
+✅ Completed - All tasks done, API endpoints extended for new demo types, tests cleaned up and fixed
 
 ## QA Results
 
@@ -274,15 +292,37 @@ NFR assessment: docs/qa/assessments/1.3-nfr-20250115.md
 ### Required Updates for New Demo Stories
 
 **API Endpoint Extensions Required**:
-- [ ] Extend API endpoints to support new demo types:
+- [x] Extend API endpoints to support new demo types:
   - `POST /api/demos/speed-to-lead-qualification/run` - Lead qualification demo execution
   - `POST /api/demos/customer-service-chatbot/run` - Chatbot demo execution
   - `POST /api/demos/ai-appointment-scheduler/run` - Appointment scheduler demo execution
-- [ ] Add corresponding callback endpoints for each demo type:
+- [x] Add corresponding callback endpoints for each demo type:
   - `POST /api/demos/speed-to-lead-qualification/callback`
   - `POST /api/demos/customer-service-chatbot/callback`
   - `POST /api/demos/ai-appointment-scheduler/callback`
-- [ ] Update demo type validation and routing logic in `netlify/functions/api.ts`
-- [ ] Add demo-specific webhook payload structures for each new demo type
-- [ ] Update rate limiting and quota checks for new demo types
-- [ ] Test integration with new demo execution flows
+- [x] Update demo type validation and routing logic in `netlify/functions/api.ts`
+- [x] Add demo-specific webhook payload structures for each new demo type
+- [x] Update rate limiting and quota checks for new demo types
+- [x] Test integration with new demo execution flows
+
+### API Endpoint Extensions Completed
+
+**Implementation Summary**:
+- ✅ Extended API endpoints to support three new demo types with demo-specific validation
+- ✅ Added comprehensive Zod schemas for input/output validation for each demo type
+- ✅ Implemented demo configuration registry with timeout and retry settings
+- ✅ Updated webhook payload structures to include demo configuration metadata
+- ✅ Enhanced callback endpoint with demo-specific output validation
+- ✅ Updated all test suites to use new demo types and validation schemas
+- ✅ Fixed Supabase mocking issues in integration tests
+- ✅ All tests passing (73/73) with comprehensive coverage
+
+**Technical Details**:
+- Added `SpeedToLeadQualificationInputSchema` and `SpeedToLeadQualificationOutputSchema`
+- Added `CustomerServiceChatbotInputSchema` and `CustomerServiceChatbotOutputSchema`  
+- Added `AIAppointmentSchedulerInputSchema` and `AIAppointmentSchedulerOutputSchema`
+- Created `DEMO_CONFIGS` registry with demo-specific timeouts and settings
+- Implemented `validateDemoInput()` and `validateDemoOutput()` functions
+- Updated API endpoints to use demo-specific validation and configuration
+- Enhanced webhook payloads with demo configuration metadata
+- Fixed all integration tests to work with new demo types and validation
