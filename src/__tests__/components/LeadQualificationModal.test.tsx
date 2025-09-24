@@ -2,11 +2,67 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LeadQualificationModal from '../../components/demo/LeadQualificationModal';
-import { AuthProvider } from '../../contexts/AuthContext';
+import { AuthProvider, useAuth } from '../../contexts/AuthContext';
+import { User, Session } from '@supabase/supabase-js';
 
+// Mock the useAuth hook
+vi.mock('../../contexts/AuthContext', async () => {
+  const actual = await vi.importActual('../../contexts/AuthContext');
+  return {
+    ...actual,
+    useAuth: vi.fn()
+  };
+});
 
+const mockUseAuth = vi.mocked(useAuth);
 
-const renderWithRouter = (component: React.ReactElement) => {
+const renderWithRouter = (component: React.ReactElement, userData?: any) => {
+  // Default mock user data
+  const defaultUserData = {
+    user: {
+      id: '1',
+      email: 'john@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2024-01-01T00:00:00Z'
+    },
+    profile: {
+      id: '1',
+      full_name: 'John Doe',
+      phone: '+1234567890',
+      email: 'john@example.com',
+      persona_segment: 'SMB' as const,
+      onboarding_completed: true,
+      organization_name: null,
+      organization_size: null,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    },
+    session: {
+      access_token: 'mock-token',
+      refresh_token: 'mock-refresh',
+      expires_in: 3600,
+      token_type: 'bearer',
+      user: {
+        id: '1',
+        email: 'john@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2024-01-01T00:00:00Z'
+      } as User
+    } as Session,
+    isAuthenticated: true,
+    isEmailVerified: true,
+    loading: false,
+    refreshProfile: vi.fn()
+  };
+
+  // Use provided user data or default
+  const authData = userData || defaultUserData;
+  mockUseAuth.mockReturnValue(authData);
+
   return render(
     <BrowserRouter>
       <AuthProvider>
@@ -22,6 +78,47 @@ describe('LeadQualificationModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset the mock to return default user data
+    mockUseAuth.mockReturnValue({
+      user: {
+        id: '1',
+        email: 'john@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2024-01-01T00:00:00Z'
+      },
+      profile: {
+        id: '1',
+        full_name: 'John Doe',
+        phone: '+1234567890',
+        email: 'john@example.com',
+        persona_segment: 'SMB' as const,
+        onboarding_completed: true,
+        organization_name: null,
+        organization_size: null,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      },
+      session: {
+        access_token: 'mock-token',
+        refresh_token: 'mock-refresh',
+        expires_in: 3600,
+        token_type: 'bearer',
+        user: {
+          id: '1',
+          email: 'john@example.com',
+          app_metadata: {},
+          user_metadata: {},
+          aud: 'authenticated',
+          created_at: '2024-01-01T00:00:00Z'
+        } as User
+      } as Session,
+      isAuthenticated: true,
+      isEmailVerified: true,
+      loading: false,
+      refreshProfile: vi.fn()
+    });
   });
 
   it('renders when open', () => {

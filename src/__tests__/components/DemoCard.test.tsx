@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import DemoCard from '../../components/DemoCard';
 import { DemoCard as DemoCardType } from '../../services/dashboard';
+import { AuthProvider } from '../../contexts/AuthContext';
 
 // Mock the dashboard service
 vi.mock('../../services/dashboard', () => ({
@@ -21,6 +22,9 @@ vi.mock('../../lib/supabase', () => ({
     auth: {
       getSession: vi.fn().mockResolvedValue({
         data: { session: { access_token: 'test-token' } }
+      }),
+      onAuthStateChange: vi.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: vi.fn() } }
       })
     }
   }
@@ -39,6 +43,14 @@ describe('DemoCard with Demo Execution', () => {
     steps: ['Step 1', 'Step 2', 'Step 3'],
     demoUrl: '#test-demo',
     personaSegments: ['SMB', 'EXEC'],
+  };
+
+  const renderDemoCard = (demo: DemoCardType) => {
+    return render(
+      <AuthProvider>
+        <DemoCard demo={demo} />
+      </AuthProvider>
+    );
   };
 
   beforeEach(() => {
@@ -61,7 +73,7 @@ describe('DemoCard with Demo Execution', () => {
   });
 
   it('renders demo card correctly', () => {
-    render(<DemoCard demo={mockDemo} />);
+    renderDemoCard(mockDemo);
 
     expect(screen.getByText('Test Demo')).toBeDefined();
     expect(screen.getByText('This is a test demo description')).toBeDefined();
@@ -89,7 +101,7 @@ describe('DemoCard with Demo Execution', () => {
       clearRun: vi.fn()
     });
 
-    render(<DemoCard demo={mockDemo} />);
+    renderDemoCard(mockDemo);
 
     const startButton = screen.getByText('Start Demo');
     fireEvent.click(startButton);
@@ -110,7 +122,7 @@ describe('DemoCard with Demo Execution', () => {
       clearRun: vi.fn()
     });
 
-    render(<DemoCard demo={mockDemo} />);
+    renderDemoCard(mockDemo);
 
     const startButton = screen.getByText('Starting...') as HTMLButtonElement;
     expect(startButton).toBeDefined();
@@ -134,7 +146,7 @@ describe('DemoCard with Demo Execution', () => {
       clearRun: vi.fn()
     });
 
-    render(<DemoCard demo={mockDemo} />);
+    renderDemoCard(mockDemo);
 
     expect(screen.getByText('Demo is running...')).toBeDefined();
   });
@@ -156,7 +168,7 @@ describe('DemoCard with Demo Execution', () => {
       clearRun: vi.fn()
     });
 
-    render(<DemoCard demo={mockDemo} />);
+    renderDemoCard(mockDemo);
 
     expect(screen.getByText('Demo completed successfully!')).toBeDefined();
   });
@@ -179,7 +191,7 @@ describe('DemoCard with Demo Execution', () => {
       clearRun: vi.fn()
     });
 
-    render(<DemoCard demo={mockDemo} />);
+    renderDemoCard(mockDemo);
 
     expect(screen.getByText('Demo failed: Demo execution failed')).toBeDefined();
   });
@@ -195,7 +207,7 @@ describe('DemoCard with Demo Execution', () => {
       clearRun: vi.fn()
     });
 
-    render(<DemoCard demo={mockDemo} />);
+    renderDemoCard(mockDemo);
 
     expect(screen.getByText('Failed to start demo')).toBeDefined();
   });
@@ -203,7 +215,7 @@ describe('DemoCard with Demo Execution', () => {
   it('disables button for locked demos', () => {
     const lockedDemo = { ...mockDemo, isLocked: true };
     
-    render(<DemoCard demo={lockedDemo} />);
+    renderDemoCard(lockedDemo);
 
     // Find the button specifically by looking for the disabled button with "Coming Soon" text
     const startButton = screen.getByRole('button', { name: /coming soon/i }) as HTMLButtonElement;
@@ -211,7 +223,11 @@ describe('DemoCard with Demo Execution', () => {
   });
 
   it('disables button when loading prop is true', () => {
-    render(<DemoCard demo={mockDemo} isLoading={true} />);
+    render(
+      <AuthProvider>
+        <DemoCard demo={mockDemo} isLoading={true} />
+      </AuthProvider>
+    );
 
     const startButton = screen.getByRole('button', { name: /start demo/i }) as HTMLButtonElement;
     expect(startButton.disabled).toBe(true);
@@ -226,7 +242,11 @@ describe('DemoCard with Demo Execution', () => {
     ];
 
     demosWithDifferentIcons.forEach((demo) => {
-      const { unmount } = render(<DemoCard demo={demo} />);
+      const { unmount } = render(
+        <AuthProvider>
+          <DemoCard demo={demo} />
+        </AuthProvider>
+      );
       
       // Check that the icon component is rendered with the correct testid
       // Map icon names to their expected testids
