@@ -95,15 +95,16 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
       });
 
       if (response.ok) {
+        const data = await response.json();
         setChatSessionId(sessionId);
-        // Add welcome message
-        addMessage('Hello! I\'m your AI customer service assistant. How can I help you today?', 'bot');
+        // Add bot response from the webhook
+        addMessage(data.response || 'Hello! I\'m your AI customer service assistant. How can I help you today?', 'bot');
       } else {
-        addMessage('Sorry, I\'m having trouble connecting. Please try again.', 'bot');
+        addMessage('I\'m having trouble connecting, please try again later.', 'bot');
       }
     } catch (error) {
       console.error('Failed to initialize chat session:', error);
-      addMessage('Sorry, I\'m having trouble connecting. Please try again.', 'bot');
+      addMessage('I\'m having trouble connecting, please try again later.', 'bot');
     }
   };
 
@@ -155,11 +156,11 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
         // Add bot response from the webhook
         addMessage(data.response || "Thank you for your message. I'm processing your request.", 'bot');
       } else {
-        addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+        addMessage('I\'m having trouble processing your message, please try again later.', 'bot');
       }
     } catch (error) {
       console.error('Failed to send message:', error);
-      addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+      addMessage('I\'m having trouble processing your message, please try again later.', 'bot');
     } finally {
       setIsLoading(false);
     }
