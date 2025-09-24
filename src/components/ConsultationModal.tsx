@@ -138,6 +138,26 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Focus management
+  useEffect(() => {
+    if (isOpen) {
+      // Focus the modal container to ensure it captures all events
+      const modalElement = document.querySelector('[data-modal="consultation"]') as HTMLElement;
+      if (modalElement) {
+        modalElement.focus();
+      }
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore body scroll
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   const validateField = (name: string, value: string): string => {
     switch (name) {
       case 'name':
@@ -281,11 +301,18 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-start justify-center p-4 overflow-y-auto"
+      onClick={handleClose}
+      onMouseDown={(e) => e.preventDefault()}
+      data-modal="consultation"
+      tabIndex={-1}
+    >
       <div
         ref={modalRef}
         className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg w-full max-w-2xl my-8 mx-auto"
         onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-orange-500/20">

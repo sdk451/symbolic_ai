@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
 import DemoCard from '../components/DemoCard';
-import ActivityFeed from '../components/ActivityFeed';
 import ConsultationCTA from '../components/ConsultationCTA';
 import ConsultationModal from '../components/ConsultationModal';
-import { User, Building2, Crown, Briefcase, GraduationCap } from 'lucide-react';
+import Footer from '../components/Footer';
+import { User, Building2, Crown, Briefcase, GraduationCap, Zap } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user, profile } = useAuth();
@@ -148,6 +148,7 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
+              <Zap className="w-8 h-8 text-orange-500 mr-3" />
               <h1 className="text-2xl font-bold text-orange-500">
                 Symbolic AI Dashboard
               </h1>
@@ -169,23 +170,20 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Demo Cards */}
-          <div className="lg:col-span-2">
+        <div className="space-y-8">
+          {/* Demo Cards Section */}
+          <div>
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">
-                Personalized Demos
+                AI Demo Suite
               </h2>
               <p className="text-gray-400">
-                {profile?.persona_segment 
-                  ? `Demos tailored for ${profile.persona_segment} professionals`
-                  : 'Explore our AI solutions'
-                }
+                Experience our core AI automation solutions
               </p>
             </div>
             
             {data?.demos && data.demos.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {data.demos.map((demo) => (
                   <DemoCard
                     key={demo.id}
@@ -206,42 +204,35 @@ const Dashboard: React.FC = () => {
                 </button>
               </div>
             )}
-
-            {/* Teaser Content */}
-            {data?.teaserContent && (
-              <div className="mt-8 bg-gradient-to-r from-[#1a1a1a] to-[#0f0f0f] border border-orange-500/20 rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  {data.teaserContent.title}
-                </h3>
-                <p className="text-gray-300 mb-4">
-                  {data.teaserContent.description}
-                </p>
-                <div className="flex items-center text-orange-400 text-sm">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse"></div>
-                  Coming Soon
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Activity Feed */}
-            <ActivityFeed 
-              activities={data?.activities || []} 
-              loading={loading}
-            />
-
-            {/* Consultation CTA */}
-            {data?.consultationMessage && (
+          {/* Consultation CTA Section */}
+          {data?.consultationMessage && (
+            <div className="max-w-4xl mx-auto">
               <ConsultationCTA
                 message={data.consultationMessage}
                 personaSegment={profile?.persona_segment || null}
                 onBookConsultation={handleBookConsultation}
                 loading={loading}
               />
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Teaser Content */}
+          {data?.teaserContent && (
+            <div className="max-w-4xl mx-auto bg-gradient-to-r from-[#1a1a1a] to-[#0f0f0f] border border-orange-500/20 rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {data.teaserContent.title}
+              </h3>
+              <p className="text-gray-300 mb-4">
+                {data.teaserContent.description}
+              </p>
+              <div className="flex items-center text-orange-400 text-sm">
+                <div className="w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse"></div>
+                Coming Soon
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
@@ -250,6 +241,9 @@ const Dashboard: React.FC = () => {
         isOpen={isConsultationModalOpen} 
         onClose={() => setIsConsultationModalOpen(false)} 
       />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

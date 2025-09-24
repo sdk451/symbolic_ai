@@ -34,6 +34,26 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
     }
   }, [isOpen, chatSessionId]);
 
+  // Focus management
+  useEffect(() => {
+    if (isOpen) {
+      // Focus the modal container to ensure it captures all events
+      const modalElement = document.querySelector('[data-modal="chatbot"]') as HTMLElement;
+      if (modalElement) {
+        modalElement.focus();
+      }
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore body scroll
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     scrollToBottom();
@@ -128,8 +148,18 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-2xl w-full h-[600px] flex flex-col">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999] p-4"
+      onClick={handleClose}
+      onMouseDown={(e) => e.preventDefault()}
+      data-modal="chatbot"
+      tabIndex={-1}
+    >
+      <div 
+        className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-2xl w-full h-[600px] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-orange-500/20">
           <div className="flex items-center">

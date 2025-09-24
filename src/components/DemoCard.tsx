@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Lock, ArrowRight, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Play, Lock, ArrowRight, Clock, CheckCircle, XCircle, Loader2, Bot, MessageCircle, Calendar, FileText, BarChart3 } from 'lucide-react';
 import { DemoCard as DemoCardType } from '../services/dashboard';
 import { useDemoExecution } from '../hooks/useDemoExecution';
 import LeadQualificationModal from './demo/LeadQualificationModal';
@@ -73,8 +73,8 @@ const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = fals
     setShowAppointmentConfirmation(true);
   };
 
-  // Use the hook's startDemo if no onStartDemo prop is provided
-  const handleDemoStart = onStartDemo ? 
+  // Use the hook's startDemo if no onStartDemo prop is provided, or for modal demos
+  const handleDemoStart = (onStartDemo && !['speed-to-lead-qualification', 'customer-service-chatbot', 'ai-appointment-scheduler'].includes(demo.id)) ? 
     async () => {
       if (demo.isLocked || isStartingDemo) return;
       
@@ -95,9 +95,16 @@ const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = fals
     handleStartDemo;
 
   const getIconComponent = (iconName: string) => {
-    // For now, return a simple div with the icon name
-    // In a real implementation, you'd import the actual icons
-    return <div className="w-8 h-8 text-white flex items-center justify-center bg-gray-600 rounded">{iconName}</div>;
+    const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+      'Bot': Bot,
+      'MessageCircle': MessageCircle,
+      'Calendar': Calendar,
+      'FileText': FileText,
+      'BarChart3': BarChart3
+    };
+    
+    const IconComponent = iconMap[iconName] || Bot; // Default to Bot if icon not found
+    return <IconComponent className="w-8 h-8 text-white" />;
   };
 
   return (

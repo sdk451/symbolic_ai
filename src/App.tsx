@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import Demos from './components/Demos';
 import Approach from './components/Approach';
 import Services from './components/Services';
 import Advisory from './components/Advisory';
@@ -106,20 +105,20 @@ function App() {
               <div>
                 <Navbar />
                 {isAuthenticated && isEmailVerified && profile?.onboarding_completed ? (
-                  <div id="demos" className="pt-16">
-                    <Demos />
-                  </div>
+                  <Navigate to="/dashboard" replace />
                 ) : isAuthenticated && isEmailVerified && profile && !profile.onboarding_completed ? (
                   <Navigate to="/onboarding" replace />
                 ) : (
-                  <Hero />
+                  <>
+                    <Hero />
+                    <Services />
+                    <Solutions />
+                    <Courses />
+                    <Approach />
+                    <Advisory />
+                    <Footer />
+                  </>
                 )}
-                <Services />
-                <Solutions />
-                <Courses />
-                <Approach />
-                <Advisory />
-                <Footer />
               </div>
             } 
           />
