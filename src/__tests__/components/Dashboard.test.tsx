@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Dashboard from '../../pages/Dashboard';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useDashboard } from '../../hooks/useDashboard';
 import { User, Session } from '@supabase/supabase-js';
 import { PersonaSegment } from '../../components/PersonaSelector';
 
 // Mock the hooks
-vi.mock('../../hooks/useAuth');
+vi.mock('../../contexts/AuthContext');
 vi.mock('../../hooks/useDashboard');
 
 // Helper functions to create properly typed mock objects

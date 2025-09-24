@@ -2,13 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LeadQualificationModal from '../../components/demo/LeadQualificationModal';
+import { AuthProvider } from '../../contexts/AuthContext';
 
 
 
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>
-      {component}
+      <AuthProvider>
+        {component}
+      </AuthProvider>
     </BrowserRouter>
   );
 };

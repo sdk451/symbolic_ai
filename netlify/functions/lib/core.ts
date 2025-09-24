@@ -12,12 +12,10 @@ export const withEnv = (key: string): string => {
 
 // Get webhook configuration for specific demo types
 export const getWebhookConfig = (demoId: string) => {
-  // For customer-service-chatbot, use the specific webhook
+  // For customer-service-chatbot, use the specific webhook (no auth needed)
   if (demoId === 'customer-service-chatbot') {
     return {
-      url: 'https://n8n.srv995431.hstgr.cloud/webhook/0c43d2e2-2990-4e61-9d0b-4f5a98e6dab5/chat',
-      username: 'symbolic_ai',
-      password: 'test1234'
+      url: 'https://n8n.srv995431.hstgr.cloud/webhook/0c43d2e2-2990-4e61-9d0b-4f5a98e6dab5/chat'
     };
   }
   

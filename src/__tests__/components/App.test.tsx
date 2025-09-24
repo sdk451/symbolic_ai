@@ -2,7 +2,8 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import App from '../../App'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../contexts/AuthContext'
+import { User, Session } from '@supabase/supabase-js'
 
 // Cleanup after each test
 afterEach(() => {
@@ -10,7 +11,7 @@ afterEach(() => {
 })
 
 // Mock the useAuth hook
-vi.mock('../../hooks/useAuth', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn()
 }))
 
@@ -128,34 +129,40 @@ describe('App', () => {
   })
 
   it('shows Demos component when authenticated and onboarding completed', () => {
+    const mockUser: User = {
+      id: '1', 
+      email: 'test@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2024-01-01T00:00:00Z'
+    } as User;
+
+    const mockProfile = {
+      id: '1',
+      full_name: 'Test User',
+      phone: '+1234567890',
+      email: 'test@example.com',
+      persona_segment: 'SMB' as const,
+      onboarding_completed: true,
+      organization_name: null,
+      organization_size: null,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    };
+
+    const mockSession: Session = {
+      access_token: 'mock-token',
+      refresh_token: 'mock-refresh',
+      expires_in: 3600,
+      token_type: 'bearer',
+      user: mockUser
+    } as Session;
+
     vi.mocked(useAuth).mockReturnValue({
-      user: { 
-        id: '1', 
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        aud: 'authenticated',
-        created_at: '2024-01-01T00:00:00Z'
-      } as Record<string, unknown>,
-      profile: { 
-        id: '1',
-        full_name: 'Test User',
-        phone: '+1234567890',
-        email: 'test@example.com',
-        persona_segment: 'SMB' as const,
-        onboarding_completed: true,
-        organization_name: null,
-        organization_size: null,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z'
-      } as Record<string, unknown>,
-      session: {
-        access_token: 'mock-token',
-        refresh_token: 'mock-refresh',
-        expires_in: 3600,
-        token_type: 'bearer',
-        user: {} as Record<string, unknown>
-      } as Record<string, unknown>,
+      user: mockUser,
+      profile: mockProfile,
+      session: mockSession,
       isAuthenticated: true,
       isEmailVerified: true,
       loading: false,

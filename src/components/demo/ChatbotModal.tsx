@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MessageCircle, Loader2, Send } from 'lucide-react';
 import Portal from '../Portal';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ChatbotModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
   isOpen,
   onClose
 }) => {
+  const { session } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -74,10 +76,16 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
       // Use our new chatbot API endpoint
       const sessionId = `chat-${Date.now()}`;
       
-      const response = await fetch('/.netlify/functions/api/chatbot/message', {
+      if (!session?.access_token) {
+        addMessage('Authentication required. Please log in.', 'bot');
+        return;
+      }
+      
+      const response = await fetch('/.netlify/functions/chatbot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           sessionId,
@@ -122,10 +130,16 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
 
     try {
       // Use our new chatbot API endpoint
-      const response = await fetch('/.netlify/functions/api/chatbot/message', {
+      if (!session?.access_token) {
+        addMessage('Authentication required. Please log in.', 'bot');
+        return;
+      }
+      
+      const response = await fetch('/.netlify/functions/chatbot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           sessionId: chatSessionId,
