@@ -112,7 +112,7 @@ describe('DemoCard with Demo Execution', () => {
 
     render(<DemoCard demo={mockDemo} />);
 
-    const startButton = screen.getByText('Starting...');
+    const startButton = screen.getByText('Starting...') as HTMLButtonElement;
     expect(startButton).toBeDefined();
     expect(startButton.disabled).toBe(true);
   });
@@ -206,14 +206,14 @@ describe('DemoCard with Demo Execution', () => {
     render(<DemoCard demo={lockedDemo} />);
 
     // Find the button specifically by looking for the disabled button with "Coming Soon" text
-    const startButton = screen.getByRole('button', { name: /coming soon/i });
+    const startButton = screen.getByRole('button', { name: /coming soon/i }) as HTMLButtonElement;
     expect(startButton.disabled).toBe(true);
   });
 
   it('disables button when loading prop is true', () => {
     render(<DemoCard demo={mockDemo} isLoading={true} />);
 
-    const startButton = screen.getByRole('button', { name: /start demo/i });
+    const startButton = screen.getByRole('button', { name: /start demo/i }) as HTMLButtonElement;
     expect(startButton.disabled).toBe(true);
   });
 

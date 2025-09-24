@@ -82,6 +82,7 @@ describe('Dashboard', () => {
       loading: false,
       isAuthenticated: true,
       isEmailVerified: true,
+      refreshProfile: vi.fn(),
     });
 
     mockUseDashboard.mockReturnValue({
@@ -106,6 +107,7 @@ describe('Dashboard', () => {
       loading: false,
       isAuthenticated: true,
       isEmailVerified: true,
+      refreshProfile: vi.fn(),
     });
 
     mockUseDashboard.mockReturnValue({
@@ -168,6 +170,7 @@ describe('Dashboard', () => {
       loading: false,
       isAuthenticated: true,
       isEmailVerified: true,
+      refreshProfile: vi.fn(),
     });
 
     mockUseDashboard.mockReturnValue({
@@ -232,6 +235,7 @@ describe('Dashboard', () => {
       loading: false,
       isAuthenticated: true,
       isEmailVerified: true,
+      refreshProfile: vi.fn(),
     });
 
     mockUseDashboard.mockReturnValue({
@@ -283,6 +287,7 @@ describe('Dashboard', () => {
       loading: false,
       isAuthenticated: true,
       isEmailVerified: true,
+      refreshProfile: vi.fn(),
     });
 
     mockUseDashboard.mockReturnValue({
@@ -320,6 +325,7 @@ describe('Dashboard', () => {
       loading: false,
       isAuthenticated: true,
       isEmailVerified: true,
+      refreshProfile: vi.fn(),
     });
 
     mockUseDashboard.mockReturnValue({

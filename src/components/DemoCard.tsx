@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Play, Lock, ArrowRight, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { DemoCard as DemoCardType } from '../services/dashboard';
 import { useDemoExecution } from '../hooks/useDemoExecution';
+import LeadQualificationModal from './demo/LeadQualificationModal';
+import CallSummaryModal from './demo/CallSummaryModal';
+import ChatbotModal from './demo/ChatbotModal';
+import AppointmentSchedulerModal from './demo/AppointmentSchedulerModal';
+import AppointmentConfirmationPopup from './demo/AppointmentConfirmationPopup';
 
 interface DemoCardProps {
   demo: DemoCardType;
@@ -17,10 +22,33 @@ const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = fals
     startDemo
   } = useDemoExecution();
   
-  const [isStartingDemo, setIsStartingDemo] = React.useState(false);
+  const [isStartingDemo, setIsStartingDemo] = useState(false);
+  const [showLeadQualificationModal, setShowLeadQualificationModal] = useState(false);
+  const [showCallSummaryModal, setShowCallSummaryModal] = useState(false);
+  const [showChatbotModal, setShowChatbotModal] = useState(false);
+  const [showAppointmentSchedulerModal, setShowAppointmentSchedulerModal] = useState(false);
+  const [showAppointmentConfirmation, setShowAppointmentConfirmation] = useState(false);
+  const [callSummaryData, setCallSummaryData] = useState<any>(null);
+  const [appointmentData, setAppointmentData] = useState<any>(null);
 
   const handleStartDemo = async () => {
     if (demo.isLocked || isExecuting) return;
+    
+    // Handle special demo types that require modals
+    if (demo.id === 'speed-to-lead-qualification') {
+      setShowLeadQualificationModal(true);
+      return;
+    }
+    
+    if (demo.id === 'customer-service-chatbot') {
+      setShowChatbotModal(true);
+      return;
+    }
+    
+    if (demo.id === 'ai-appointment-scheduler') {
+      setShowAppointmentSchedulerModal(true);
+      return;
+    }
     
     try {
       const result = await startDemo(demo.id);
@@ -33,6 +61,16 @@ const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = fals
     } catch {
       alert('Failed to start demo. Please try again.');
     }
+  };
+
+  const handleCallComplete = (result: any) => {
+    setCallSummaryData(result);
+    setShowCallSummaryModal(true);
+  };
+
+  const handleAppointmentScheduled = (result: any) => {
+    setAppointmentData(result);
+    setShowAppointmentConfirmation(true);
   };
 
   // Use the hook's startDemo if no onStartDemo prop is provided
@@ -194,6 +232,47 @@ const DemoCard: React.FC<DemoCardProps> = ({ demo, onStartDemo, isLoading = fals
           )}
         </span>
       </div>
+
+      {/* Lead Qualification Modal */}
+      <LeadQualificationModal
+        isOpen={showLeadQualificationModal}
+        onClose={() => setShowLeadQualificationModal(false)}
+        onCallComplete={handleCallComplete}
+      />
+
+      {/* Call Summary Modal */}
+      {callSummaryData && (
+        <CallSummaryModal
+          isOpen={showCallSummaryModal}
+          onClose={() => setShowCallSummaryModal(false)}
+          callData={callSummaryData}
+        />
+      )}
+
+      {/* Chatbot Modal */}
+      <ChatbotModal
+        isOpen={showChatbotModal}
+        onClose={() => setShowChatbotModal(false)}
+        onChatComplete={(result) => {
+          console.log('Chat completed:', result);
+        }}
+      />
+
+      {/* Appointment Scheduler Modal */}
+      <AppointmentSchedulerModal
+        isOpen={showAppointmentSchedulerModal}
+        onClose={() => setShowAppointmentSchedulerModal(false)}
+        onAppointmentScheduled={handleAppointmentScheduled}
+      />
+
+      {/* Appointment Confirmation Popup */}
+      {appointmentData && (
+        <AppointmentConfirmationPopup
+          isOpen={showAppointmentConfirmation}
+          onClose={() => setShowAppointmentConfirmation(false)}
+          appointmentData={appointmentData}
+        />
+      )}
     </div>
   );
 };
