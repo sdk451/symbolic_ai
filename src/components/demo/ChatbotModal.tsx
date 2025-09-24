@@ -76,17 +76,18 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
       // Use our new chatbot API endpoint
       const sessionId = `chat-${Date.now()}`;
       
-      if (!session?.access_token) {
-        addMessage('Authentication required. Please log in.', 'bot');
-        return;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Only add authorization header if we have a session
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
       }
       
       const response = await fetch('/.netlify/functions/chatbot', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
+        headers,
         body: JSON.stringify({
           sessionId,
           action: 'initialize'
@@ -130,17 +131,18 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
 
     try {
       // Use our new chatbot API endpoint
-      if (!session?.access_token) {
-        addMessage('Authentication required. Please log in.', 'bot');
-        return;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Only add authorization header if we have a session
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
       }
       
       const response = await fetch('/.netlify/functions/chatbot', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
+        headers,
         body: JSON.stringify({
           sessionId: chatSessionId,
           message: userMessage,

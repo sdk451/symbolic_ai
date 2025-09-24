@@ -31,57 +31,51 @@ export const handler: Handler = async (event, context) => {
   try {
     console.log('🔐 Chatbot endpoint called');
     
-    // Verify user authentication from Netlify event
-    const authHeader = event.headers.authorization || event.headers.Authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({
-          error: 'Unauthorized',
-          message: 'Missing or invalid authorization header',
-          code: 'UNAUTHORIZED'
-        })
-      };
-    }
-
-    const token = authHeader.substring(7);
-    
-    // Create Supabase client with environment variables
+    // For demo purposes, skip authentication if Supabase is not configured
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Missing Supabase environment variables');
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({
-          error: 'Server Configuration Error',
-          message: 'Missing Supabase configuration',
-          code: 'CONFIG_ERROR'
-        })
-      };
+    let userId = 'demo-user';
+    
+    // Only verify authentication if Supabase is properly configured
+    if (supabaseUrl && supabaseServiceKey) {
+      const authHeader = event.headers.authorization || event.headers.Authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({
+            error: 'Unauthorized',
+            message: 'Missing or invalid authorization header',
+            code: 'UNAUTHORIZED'
+          })
+        };
+      }
+
+      const token = authHeader.substring(7);
+      
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      
+      if (error || !user) {
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({
+            error: 'Unauthorized',
+            message: 'Invalid or expired token',
+            code: 'UNAUTHORIZED'
+          })
+        };
+      }
+      
+      userId = user.id;
+      console.log('🔐 User verified:', user?.id);
+    } else {
+      console.log('🔐 Running in demo mode without authentication');
     }
-    
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
-    if (error || !user) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({
-          error: 'Unauthorized',
-          message: 'Invalid or expired token',
-          code: 'UNAUTHORIZED'
-        })
-      };
-    }
-    
-    console.log('🔐 User verified:', user?.id);
     
     // Parse request body
     const body = JSON.parse(event.body || '{}');
@@ -109,7 +103,7 @@ export const handler: Handler = async (event, context) => {
       message: message || '',
       action,
       timestamp: new Date().toISOString(),
-      userId: user.id
+      userId: userId
     };
     
     // Call n8n webhook directly (no auth header needed)
