@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, Mail, User, Calendar, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useDemoExecution } from '../../hooks/useDemoExecution';
 import Portal from '../Portal';
 

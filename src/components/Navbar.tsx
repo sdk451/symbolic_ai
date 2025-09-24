@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Zap, LogOut } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/auth';
 import { hasAccountFromCookie } from '../lib/cookies';
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import ConsultationModal from './ConsultationModal';
 import AuthModal from './AuthModal';
 import { hasAccountFromCookie } from '../lib/cookies';

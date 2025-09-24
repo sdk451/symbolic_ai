@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Eye, EyeOff, User, Mail, Phone, Lock, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { authService, SignUpData, SignInData } from '../services/auth';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { setAuthStateCookie, isEmailInCookie } from '../lib/cookies';
 
 interface FormData {

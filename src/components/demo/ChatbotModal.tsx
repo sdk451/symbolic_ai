@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, MessageCircle, Loader2, AlertCircle, Send } from 'lucide-react';
-import { useDemoExecution } from '../../hooks/useDemoExecution';
+import { X, MessageCircle, Loader2, Send } from 'lucide-react';
 import Portal from '../Portal';
 
 interface ChatbotModalProps {
@@ -18,10 +17,8 @@ interface ChatMessage {
 
 const ChatbotModal: React.FC<ChatbotModalProps> = ({
   isOpen,
-  onClose,
-  onChatComplete
+  onClose
 }) => {
-  const { status, startDemo, clearRun } = useDemoExecution();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,12 +57,13 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  // Handle demo status changes
+  // Handle chat completion
   useEffect(() => {
-    if (status?.status === 'succeeded' && status.outputData) {
-      onChatComplete?.(status.outputData);
+    if (messages.length > 0 && messages[messages.length - 1].sender === 'bot') {
+      // You can add logic here to detect when the chat is complete
+      // For now, we'll just call onChatComplete when the modal closes
     }
-  }, [status, onChatComplete]);
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -73,14 +71,22 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
 
   const initializeChatSession = async () => {
     try {
-      const result = await startDemo('customer-service-chatbot', {
-        sessionId: `chat-${Date.now()}`,
-        messageCount: 0,
-        startTime: new Date().toISOString()
+      // Use our new chatbot API endpoint
+      const sessionId = `chat-${Date.now()}`;
+      
+      const response = await fetch('/.netlify/functions/api/chatbot/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          action: 'initialize'
+        })
       });
 
-      if (result.success) {
-        setChatSessionId(result.runId || null);
+      if (response.ok) {
+        setChatSessionId(sessionId);
         // Add welcome message
         addMessage('Hello! I\'m your AI customer service assistant. How can I help you today?', 'bot');
       } else {
@@ -115,30 +121,35 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
     addMessage(userMessage, 'user');
 
     try {
-      // Simulate bot response (in real implementation, this would call the chatbot API)
-      setTimeout(() => {
-        const responses = [
-          "That's a great question! Let me help you with that.",
-          "I understand your concern. Here's what I can tell you...",
-          "Thank you for reaching out. Based on what you've described...",
-          "I'd be happy to assist you with that. Let me provide some information...",
-          "That's a common question. Here's what you need to know..."
-        ];
-        
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        addMessage(randomResponse, 'bot');
-        setIsLoading(false);
-      }, 1000 + Math.random() * 2000); // Random delay between 1-3 seconds
+      // Use our new chatbot API endpoint
+      const response = await fetch('/.netlify/functions/api/chatbot/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: chatSessionId,
+          message: userMessage,
+          action: 'message'
+        })
+      });
 
+      if (response.ok) {
+        const data = await response.json();
+        // Add bot response from the webhook
+        addMessage(data.response || "Thank you for your message. I'm processing your request.", 'bot');
+      } else {
+        addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
       addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+    } finally {
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
-    clearRun();
     setMessages([]);
     setChatSessionId(null);
     setInputMessage('');
@@ -237,29 +248,6 @@ const ChatbotModal: React.FC<ChatbotModalProps> = ({
           </form>
         </div>
 
-        {/* Demo Status Display */}
-        {status && (
-          <div className="p-3 border-t border-orange-500/20 bg-orange-500/10">
-            {status.status === 'queued' && (
-              <div className="flex items-center text-blue-400">
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                <span className="text-sm">Initializing chat session...</span>
-              </div>
-            )}
-            {status.status === 'running' && (
-              <div className="flex items-center text-yellow-400">
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                <span className="text-sm">Chat session active</span>
-              </div>
-            )}
-            {status.status === 'failed' && (
-              <div className="flex items-center text-red-400">
-                <AlertCircle className="w-4 h-4 mr-2" />
-                <span className="text-sm">Chat session failed: {status.errorMessage || 'Unknown error'}</span>
-              </div>
-            )}
-          </div>
-        )}
       </div>
       </div>
     </Portal>

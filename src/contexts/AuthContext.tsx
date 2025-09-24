@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -25,11 +25,18 @@ interface AuthState {
   refreshProfile: () => Promise<void>;
 }
 
-export const useAuth = (): AuthState => {
+const AuthContext = createContext<AuthState | undefined>(undefined);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileFetched, setProfileFetched] = useState(false);
 
   // Separate effect for auth state changes
   useEffect(() => {
@@ -55,6 +62,8 @@ export const useAuth = (): AuthState => {
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
+          // Reset profile fetched flag when user changes
+          setProfileFetched(false);
         }
       }
     );
@@ -65,12 +74,19 @@ export const useAuth = (): AuthState => {
     };
   }, []);
 
-  // Separate effect for profile fetching - only runs when user changes
+  // Separate effect for profile fetching - only runs when user changes and profile hasn't been fetched
   useEffect(() => {
     let mounted = true;
 
     const fetchProfile = async (userId: string) => {
+      // Prevent multiple fetches for the same user
+      if (profileFetched && profile?.id === userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
+        console.log('🔐 Fetching profile for user:', userId);
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -97,6 +113,7 @@ export const useAuth = (): AuthState => {
         } else {
           setProfile(data);
         }
+        setProfileFetched(true);
       } catch (error) {
         console.error('Error fetching profile:', error);
         if (mounted) {
@@ -113,6 +130,7 @@ export const useAuth = (): AuthState => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
+          setProfileFetched(true);
         }
       } finally {
         if (mounted) {
@@ -121,17 +139,21 @@ export const useAuth = (): AuthState => {
       }
     };
 
-    if (user) {
+    if (user && !profileFetched) {
       fetchProfile(user.id);
-    } else {
+    } else if (!user) {
       setProfile(null);
+      setProfileFetched(false);
+      setLoading(false);
+    } else {
+      // User exists and profile already fetched
       setLoading(false);
     }
 
     return () => {
       mounted = false;
     };
-  }, [user]); // Only depend on user, not profile
+  }, [user, profileFetched, profile?.id]);
 
   const isAuthenticated = !!user && !!session;
   const isEmailVerified = user?.email_confirmed_at != null;
@@ -139,6 +161,7 @@ export const useAuth = (): AuthState => {
   const refreshProfile = async () => {
     if (user) {
       try {
+        console.log('🔐 Refreshing profile for user:', user.id);
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -151,13 +174,14 @@ export const useAuth = (): AuthState => {
         }
 
         setProfile(data);
+        setProfileFetched(true);
       } catch (error) {
         console.error('Error refreshing profile:', error);
       }
     }
   };
 
-  return {
+  const value: AuthState = {
     user,
     profile,
     session,
@@ -166,4 +190,18 @@ export const useAuth = (): AuthState => {
     isEmailVerified,
     refreshProfile
   };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = (): AuthState => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

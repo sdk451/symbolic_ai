@@ -211,6 +211,71 @@ app.post('/api/demos/:demoId/run', async (c) => {
   }
 });
 
+// POST /api/chatbot/message - Handle real-time chatbot messages
+app.post('/api/chatbot/message', async (c) => {
+  try {
+    // Verify user authentication
+    const user = await verifyUser(c.req);
+    
+    // Parse request body
+    const body = await c.req.json();
+    const { sessionId, message, action = 'message' } = body;
+    
+    if (!sessionId) {
+      return c.json({
+        error: 'Missing session ID',
+        message: 'Session ID is required for chatbot interactions',
+        code: 'MISSING_SESSION_ID'
+      }, 400);
+    }
+    
+    // Get webhook configuration for chatbot
+    const webhookConfig = getWebhookConfig('customer-service-chatbot');
+    
+    // Prepare the payload for n8n
+    const webhookPayload = {
+      sessionId,
+      message: message || '',
+      action,
+      timestamp: new Date().toISOString(),
+      userId: user.id
+    };
+    
+    // Call n8n webhook directly
+    const response = await fetch(webhookConfig.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(`${webhookConfig.username}:${webhookConfig.password}`).toString('base64')}`
+      },
+      body: JSON.stringify(webhookPayload)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`n8n webhook failed: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Return the response from n8n
+    return c.json({
+      success: true,
+      response: data.response || data.message || "Thank you for your message. I'm processing your request.",
+      sessionId,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Chatbot message error:', error);
+    
+    return c.json({
+      error: 'Chatbot Error',
+      message: error instanceof Error ? error.message : 'Failed to process chatbot message',
+      code: 'CHATBOT_ERROR'
+    }, 500);
+  }
+});
+
 // POST /api/demos/:runId/callback - Handle n8n webhook callbacks
 app.post('/api/demos/:runId/callback', async (c) => {
   try {

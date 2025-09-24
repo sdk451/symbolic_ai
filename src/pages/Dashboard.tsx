@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { useDashboard } from '../hooks/useDashboard';
 import DemoCard from '../components/DemoCard';
 import ConsultationCTA from '../components/ConsultationCTA';
