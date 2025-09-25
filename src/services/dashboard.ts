@@ -37,15 +37,15 @@ export interface DashboardData {
 export const mockDemos: DemoCard[] = [
   {
     id: 'speed-to-lead-qualification',
-    title: 'AI Speed to Lead Qualification Agent',
-    description: 'Experience how our AI agent qualifies leads and schedules appointments automatically with pre-populated forms and VAPI calls',
+    title: 'AI Lead Qualification Agent',
+    description: 'Experience how our AI voice agent responds to leads and enquiries',
     icon: 'Bot',
     color: 'from-green-500 to-blue-600',
     steps: [
-      'Fill out a pre-populated lead form',
-      'Answer the Lead Qualification Agent\'s call',
-      'Let the AI analyze and score the lead',
-      'View call summary and next steps'
+      'Fill out a sample lead form',
+      'Talk to our virtual Sales Assistant',
+      'Let the AI analyze your requirements',
+      'View a summary of the lead qualification call'
     ],
     demoUrl: '#demo-lead-qualification',
     personaSegments: ['SMB', 'EXEC', 'FREELANCER']
@@ -53,14 +53,14 @@ export const mockDemos: DemoCard[] = [
   {
     id: 'customer-service-chatbot',
     title: 'Customer Service Chatbot',
-    description: 'Test our intelligent chatbot that handles customer inquiries with human-like responses in real-time chat',
+    description: 'Our intelligent agent handles customer conversations with human-like responses',
     icon: 'MessageCircle',
     color: 'from-blue-500 to-purple-600',
     steps: [
-      'Open the chat modal interface',
       'Start a conversation with the AI',
-      'Ask common customer questions',
-      'Experience real-time responses and escalation'
+      'Find available slots and book appointments',
+      'Explore company knowledge base and FAQ',
+      'Email escalation to the team as needed'
     ],
     demoUrl: '#demo-chatbot',
     personaSegments: ['SMB', 'EXEC', 'FREELANCER', 'SOLO']
@@ -68,14 +68,14 @@ export const mockDemos: DemoCard[] = [
   {
     id: 'ai-appointment-scheduler',
     title: 'AI Appointment Scheduler',
-    description: 'Try our AI-powered scheduling system that calls you and finds available appointment times automatically',
+    description: 'Try our AI-powered scheduling system that manages appointments intelligently',
     icon: 'Calendar',
     color: 'from-purple-500 to-red-600',
     steps: [
-      'Fill out pre-populated contact form',
-      'Click "Call Me" to initiate VAPI call',
-      'Let AI find available appointment times',
-      'Receive appointment confirmation'
+      'Request an appointment over the phone',
+      'Listen to AI check availability',
+      'Hear automatic calendar suggestions',
+      'Receive confirmation and reminders'
     ],
     demoUrl: '#demo-scheduler',
     personaSegments: ['SMB', 'EXEC', 'FREELANCER', 'SOLO']
@@ -169,7 +169,7 @@ export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): Dem
   );
   
   // Always return exactly 3 demos with chatbot as 2nd
-  const result = [];
+  const result: DemoCard[] = [];
   
   // Add first demo (or first available if none match)
   if (otherDemos.length > 0) {
@@ -212,11 +212,11 @@ export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): Dem
 
 export const getPersonaBasedConsultationMessage = (personaSegment: PersonaSegment | null): string => {
   const messages = {
-    'SMB': 'Ready to scale your business operations? Let\'s discuss how AI automation can help your growing team work more efficiently.',
-    'SOLO': 'Take your solo business to the next level. Discover how AI can handle routine tasks so you can focus on what you do best.',
-    'EXEC': 'Drive strategic transformation with AI. Let\'s explore enterprise-grade solutions that deliver measurable ROI.',
-    'FREELANCER': 'Expand your service offerings with AI. Learn how to deliver more value to clients with intelligent automation.',
-    'ASPIRING': 'Jumpstart your career with AI skills. Get personalized guidance on how to leverage AI in your professional development.'
+    'SMB': 'Ready to scale your business operations? \n Let\'s discuss how AI solutions can help you\n grow your revenue and get yourteam work more efficiently.',
+    'SOLO': 'Take your solo business to the next level. \n Discover how AI can handle routine tasks so you can focus on what you do best.',
+    'EXEC': 'Drive strategic transformation with AI. \n Let\'s explore AI solutions that deliver measurable ROI.',
+    'FREELANCER': 'Expand your service offerings with AI.\n Learn how to deliver more value to clients with intelligent automation.',
+    'ASPIRING': 'Kicktart your career with AI skills. \nGet personalized guidance on how to leverage AI in your professional development.'
   };
   
   return messages[personaSegment || 'ASPIRING'];
@@ -278,7 +278,7 @@ export const startDemo = async (demoId: string, inputData?: Record<string, unkno
   
   try {
     // Get auth token from Supabase
-    const { supabase } = await import('../lib/supabase');
+    const { supabase } = await import('../lib/supabase') as { supabase: any };
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.access_token) {
@@ -331,7 +331,7 @@ export const getDemoRunStatus = async (runId: string): Promise<{
   message?: string 
 }> => {
   try {
-    const { supabase } = await import('../lib/supabase');
+    const { supabase } = await import('../lib/supabase') as { supabase: any };
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.access_token) {

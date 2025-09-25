@@ -18,7 +18,7 @@ const Demos = () => {
     {
       icon: MessageCircle,
       title: 'Customer Service Chatbot',
-      description: 'Chat with an intelligent agent thathandles customer inquiries with human-like responses',
+      description: 'Our intelligent agent handles customer inquiries with human-like responses',
       steps: [
         'Start a conversation with the AI',
         'Explore company knowledge base and FAQ',

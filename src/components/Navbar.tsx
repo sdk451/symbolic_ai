@@ -75,7 +75,7 @@ const Navbar = () => {
             </span>
             {/* Welcome message for authenticated users */}
             {isAuthenticated && isEmailVerified && (
-              <span className="text-gray-300 font-medium ml-16 text-base">
+              <span className="text-gray-300 font-medium ml-16 text-lg">
                 Welcome, {user?.user_metadata?.full_name || user?.email}
               </span>
             )}

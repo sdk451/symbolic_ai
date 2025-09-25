@@ -148,8 +148,10 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <Zap className="w-8 h-8 text-orange-500 mr-3" />
-              <h1 className="text-2xl font-bold text-orange-500">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 mr-3">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-300 to-orange-600 bg-clip-text text-transparent">
                 Symbolic AI Dashboard
               </h1>
             </div>
