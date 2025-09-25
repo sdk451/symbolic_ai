@@ -212,11 +212,11 @@ export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): Dem
 
 export const getPersonaBasedConsultationMessage = (personaSegment: PersonaSegment | null): string => {
   const messages = {
-    'SMB': 'Ready to scale your business operations? \n Let\'s discuss how AI solutions can help you\n grow your revenue and get yourteam work more efficiently.',
-    'SOLO': 'Take your solo business to the next level. \n Discover how AI can handle routine tasks so you can focus on what you do best.',
-    'EXEC': 'Drive strategic transformation with AI. \n Let\'s explore AI solutions that deliver measurable ROI.',
-    'FREELANCER': 'Expand your service offerings with AI.\n Learn how to deliver more value to clients with intelligent automation.',
-    'ASPIRING': 'Kicktart your career with AI skills. \nGet personalized guidance on how to leverage AI in your professional development.'
+    'SMB': 'Scale your business with our intelligent AI solutions.',
+    'SOLO': 'Take your solo business to the next level with our AI solutions.',
+    'EXEC': 'Drive your strategic transformation with our AI solutions.',
+    'FREELANCER': 'Deliver more value to clients with our AI solutions.',
+    'ASPIRING': 'Kickstart your career with our AI skills education.'
   };
   
   return messages[personaSegment || 'ASPIRING'];

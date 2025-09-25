@@ -80,7 +80,7 @@ describe('Dashboard Service', () => {
       const message = getPersonaBasedConsultationMessage('SMB');
       
       expect(message).toContain('scale your business operations');
-      expect(message).toContain('growing team');
+      expect(message).toContain('AI solutions can help you');
     });
 
     it('returns SOLO message for SOLO persona', () => {
@@ -94,7 +94,7 @@ describe('Dashboard Service', () => {
       const message = getPersonaBasedConsultationMessage('EXEC');
       
       expect(message).toContain('strategic transformation');
-      expect(message).toContain('enterprise-grade');
+      expect(message).toContain('AI solutions that deliver measurable ROI');
     });
 
     it('returns FREELANCER message for FREELANCER persona', () => {

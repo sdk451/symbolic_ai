@@ -148,9 +148,7 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 mr-3">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
+              <Zap className="w-8 h-8 text-orange-500 mr-3" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-300 to-orange-600 bg-clip-text text-transparent">
                 Symbolic AI Dashboard
               </h1>
@@ -210,7 +208,7 @@ const Dashboard: React.FC = () => {
 
           {/* Consultation CTA Section */}
           {data?.consultationMessage && (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-xl mx-auto">
               <ConsultationCTA
                 message={data.consultationMessage}
                 personaSegment={profile?.persona_segment || null}
@@ -220,7 +218,8 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Teaser Content */}
+          {/* Teaser Content - Hidden for now */}
+          {/* 
           {data?.teaserContent && (
             <div className="max-w-4xl mx-auto bg-gradient-to-r from-[#1a1a1a] to-[#0f0f0f] border border-orange-500/20 rounded-lg p-6">
               <h3 className="text-xl font-semibold text-white mb-2">
@@ -235,6 +234,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           )}
+          */}
         </div>
       </div>
       

@@ -31,23 +31,9 @@ const ConsultationCTA: React.FC<ConsultationCTAProps> = ({
     }
   };
 
-  const getPersonaColor = (segment: string | null) => {
-    switch (segment) {
-      case 'SMB':
-        return 'from-blue-500 to-blue-600';
-      case 'SOLO':
-        return 'from-green-500 to-green-600';
-      case 'EXEC':
-        return 'from-purple-500 to-purple-600';
-      case 'FREELANCER':
-        return 'from-orange-500 to-orange-600';
-      case 'ASPIRING':
-        return 'from-cyan-500 to-cyan-600';
-      default:
-        return 'from-orange-500 to-orange-600';
-    }
-  };
 
+  // Keep for future use - commented out to avoid linter warning
+  /*
   const getPersonaBenefits = (segment: string | null) => {
     switch (segment) {
       case 'SMB':
@@ -88,6 +74,7 @@ const ConsultationCTA: React.FC<ConsultationCTAProps> = ({
         ];
     }
   };
+  */
 
   return (
     <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-orange-500/20 rounded-lg p-6 relative overflow-hidden">
@@ -100,7 +87,7 @@ const ConsultationCTA: React.FC<ConsultationCTAProps> = ({
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-center mb-4">
-          <div className={`p-3 rounded-lg bg-gradient-to-r ${getPersonaColor(personaSegment)} mr-4`}>
+          <div className="p-3 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 mr-4">
             {getPersonaIcon(personaSegment)}
           </div>
           <div>
@@ -118,7 +105,8 @@ const ConsultationCTA: React.FC<ConsultationCTAProps> = ({
           {message}
         </p>
 
-        {/* Benefits */}
+        {/* Benefits - Hidden for now, keeping data for future use */}
+        {/* 
         <div className="mb-6">
           <h4 className="text-sm font-medium text-orange-400 mb-3 uppercase tracking-wide">
             What You'll Get:
@@ -132,12 +120,13 @@ const ConsultationCTA: React.FC<ConsultationCTAProps> = ({
             ))}
           </ul>
         </div>
+        */}
 
         {/* CTA Button */}
         <button
           onClick={onBookConsultation}
           disabled={loading}
-          className={`w-full bg-gradient-to-r ${getPersonaColor(personaSegment)} text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center ${
+          className={`w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-200 transform hover:scale-105 flex items-center justify-center ${
             loading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
@@ -149,7 +138,7 @@ const ConsultationCTA: React.FC<ConsultationCTAProps> = ({
           ) : (
             <>
               <Calendar className="w-5 h-5 mr-2" />
-              Book Free Consultation
+              Book Free Discovery Call
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
