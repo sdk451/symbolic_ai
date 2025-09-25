@@ -1,4 +1,3 @@
-import React from 'react';
 import { Brain, UserCheck } from 'lucide-react';
 
 const Advisory = () => {

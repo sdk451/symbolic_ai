@@ -1,4 +1,3 @@
-import React from 'react';
 import { Bot, Workflow, Search, Users, Target, Code } from 'lucide-react';
 
 const Services = () => {

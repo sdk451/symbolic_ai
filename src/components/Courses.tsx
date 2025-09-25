@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, Users } from 'lucide-react';
 
 const Courses = () => {

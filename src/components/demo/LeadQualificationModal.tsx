@@ -10,14 +10,14 @@ interface LeadQualificationModalProps {
   onCallComplete?: (result: any) => void;
 }
 
-interface FormData {
+interface LeadFormData extends Record<string, unknown> {
   name: string;
   email: string;
   phone: string;
   request: string;
 }
 
-interface FormErrors {
+interface FormErrors extends Record<string, string | undefined> {
   name?: string;
   email?: string;
   phone?: string;
@@ -32,7 +32,7 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
   const { profile, user } = useAuth();
   const { status, startDemo, clearRun } = useDemoExecution();
   
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<LeadFormData>({
     name: '',
     email: '',
     phone: '',
@@ -110,7 +110,7 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
+  const handleInputChange = (field: keyof LeadFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {

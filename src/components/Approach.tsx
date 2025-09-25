@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, Zap, TrendingUp } from 'lucide-react';
 
 const Approach = () => {

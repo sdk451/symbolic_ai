@@ -60,13 +60,13 @@ const ConsultationCTA: React.FC<ConsultationCTAProps> = ({
         return [
           'Personal productivity tools',
           'Client management automation',
-          'Time-saving solutions'
+          'Time-saving AI solutions'
         ];
       case 'EXEC':
         return [
           'Strategic AI roadmap',
-          'Enterprise-grade solutions',
-          'Executive-level insights'
+          'Executive-level insights',
+          'Team-focused AI solutions', 
         ];
       case 'FREELANCER':
         return [
@@ -77,14 +77,14 @@ const ConsultationCTA: React.FC<ConsultationCTAProps> = ({
       case 'ASPIRING':
         return [
           'Career development guidance',
-          'Skill-building roadmap',
+          'AI Skill-building roadmap',
           'Industry best practices'
         ];
       default:
         return [
           'Personalized AI strategy',
-          'Implementation roadmap',
-          'Ongoing support'
+          'AI implementation roadmap',
+          'AI coaching and support'
         ];
     }
   };

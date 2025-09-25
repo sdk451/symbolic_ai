@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Calendar, Clock, CheckCircle, Mail, Phone, Download } from 'lucide-react';
+import { X, Calendar, Clock, CheckCircle, Download } from 'lucide-react';
 
 interface AppointmentConfirmationPopupProps {
   isOpen: boolean;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Phone, MessageCircle, ShoppingCart, Users, Calendar, Cog } from 'lucide-react';
 
 const Solutions = () => {

@@ -10,14 +10,14 @@ interface AppointmentSchedulerModalProps {
   onAppointmentScheduled?: (result: any) => void;
 }
 
-interface FormData {
+interface AppointmentFormData extends Record<string, unknown> {
   name: string;
   phone: string;
   email: string;
   requestedTime?: string;
 }
 
-interface FormErrors {
+interface FormErrors extends Record<string, string | undefined> {
   name?: string;
   phone?: string;
   email?: string;
@@ -31,7 +31,7 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
   const { profile, user } = useAuth();
   const { status, startDemo, clearRun } = useDemoExecution();
   
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<AppointmentFormData>({
     name: '',
     phone: '',
     email: '',
@@ -105,7 +105,7 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
+  const handleInputChange = (field: keyof AppointmentFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {

@@ -4,8 +4,8 @@ const Demos = () => {
   const demos = [
     {
       icon: Bot,
-      title: 'AI Speed to Lead Qualification Agent',
-      description: 'Experience how our AI agent qualifies leads and schedules appointments automatically',
+      title: 'AI Lead Qualification Agent',
+      description: 'Experience how our AI agent responds to leads and enquiries',
       steps: [
         'Fill out a sample lead form',
         'Chat with our Lead Qualification Agent on the phone',
@@ -18,7 +18,7 @@ const Demos = () => {
     {
       icon: MessageCircle,
       title: 'Customer Service Chatbot',
-      description: 'Test our intelligent chatbot that handles customer inquiries with human-like responses',
+      description: 'Chat with an intelligent agent thathandles customer inquiries with human-like responses',
       steps: [
         'Start a conversation with the AI',
         'Explore company knowledge base and FAQ',
@@ -33,9 +33,9 @@ const Demos = () => {
       title: 'AI Appointment Scheduler',
       description: 'Try our AI-powered scheduling system that manages appointments intelligently',
       steps: [
-        'Request an appointment via chat',
-        'Watch AI check availability',
-        'See automatic calendar blocking',
+        'Request an appointment over the phone',
+        'Listen to AI check availability',
+        'Hear automatic calendar suggestions',
         'Receive confirmation and reminders'
       ],
       demoUrl: '#demo-scheduler',
