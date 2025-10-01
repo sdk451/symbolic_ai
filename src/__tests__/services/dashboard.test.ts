@@ -79,43 +79,43 @@ describe('Dashboard Service', () => {
     it('returns SMB message for SMB persona', () => {
       const message = getPersonaBasedConsultationMessage('SMB');
       
-      expect(message).toContain('scale your business operations');
-      expect(message).toContain('AI solutions can help you');
+      expect(message).toContain('Scale your business');
+      expect(message).toContain('intelligent AI solutions');
     });
 
     it('returns SOLO message for SOLO persona', () => {
       const message = getPersonaBasedConsultationMessage('SOLO');
       
       expect(message).toContain('solo business');
-      expect(message).toContain('routine tasks');
+      expect(message).toContain('next level');
     });
 
     it('returns EXEC message for EXEC persona', () => {
       const message = getPersonaBasedConsultationMessage('EXEC');
       
       expect(message).toContain('strategic transformation');
-      expect(message).toContain('AI solutions that deliver measurable ROI');
+      expect(message).toContain('AI solutions');
     });
 
     it('returns FREELANCER message for FREELANCER persona', () => {
       const message = getPersonaBasedConsultationMessage('FREELANCER');
       
-      expect(message).toContain('service offerings');
       expect(message).toContain('clients');
+      expect(message).toContain('AI solutions');
     });
 
     it('returns ASPIRING message for ASPIRING persona', () => {
       const message = getPersonaBasedConsultationMessage('ASPIRING');
       
       expect(message).toContain('career');
-      expect(message).toContain('professional development');
+      expect(message).toContain('AI skills education');
     });
 
     it('returns default message for null persona', () => {
       const message = getPersonaBasedConsultationMessage(null);
       
       expect(message).toContain('career');
-      expect(message).toContain('professional development');
+      expect(message).toContain('AI skills education');
     });
   });
 

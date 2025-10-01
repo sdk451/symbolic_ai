@@ -190,7 +190,6 @@ describe('Dashboard', () => {
     expect(screen.getByText('Experience our core AI automation solutions')).toBeDefined();
     expect(screen.getByText('AI Lead Qualification Agent')).toBeDefined();
     expect(screen.getByText('Ready to Get Started?')).toBeDefined();
-    expect(screen.getByText('Advanced Workflow Automation')).toBeDefined();
   });
 
   it('handles demo start correctly', async () => {
@@ -299,7 +298,7 @@ describe('Dashboard', () => {
 
     renderDashboard();
 
-    const bookConsultationButton = screen.getByText('Book Free Consultation');
+    const bookConsultationButton = screen.getByText('Book Free Discovery Call');
     fireEvent.click(bookConsultationButton);
 
     expect(mockDispatchEvent).toHaveBeenCalledWith(

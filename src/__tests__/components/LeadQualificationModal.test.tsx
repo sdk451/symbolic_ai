@@ -155,7 +155,8 @@ describe('LeadQualificationModal', () => {
       />
     );
 
-    expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('John')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Doe')).toBeInTheDocument();
     expect(screen.getByDisplayValue('john@example.com')).toBeInTheDocument();
     expect(screen.getByDisplayValue('+1234567890')).toBeInTheDocument();
   });
@@ -169,16 +170,17 @@ describe('LeadQualificationModal', () => {
       />
     );
 
-    // Clear the name field
-    const nameInput = screen.getByDisplayValue('John Doe');
-    fireEvent.change(nameInput, { target: { value: '' } });
+    // Clear the first name field
+    const firstNameInput = screen.getByDisplayValue('John');
+    fireEvent.change(firstNameInput, { target: { value: '' } });
 
     // Submit the form
-    const submitButton = screen.getByText('Start Lead Qualification Call');
+    const submitButton = screen.getByText('Submit Lead Qualification Form');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Name is required')).toBeInTheDocument();
+      expect(screen.getByText('First name is required')).toBeInTheDocument();
+      expect(screen.getByText('Request description is required')).toBeInTheDocument();
     });
   });
 
@@ -223,7 +225,7 @@ describe('LeadQualificationModal', () => {
     fireEvent.change(phoneInput, { target: { value: '123' } });
 
     // Submit the form
-    const submitButton = screen.getByText('Start Lead Qualification Call');
+    const submitButton = screen.getByText('Submit Lead Qualification Form');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -245,7 +247,7 @@ describe('LeadQualificationModal', () => {
     fireEvent.change(requestInput, { target: { value: 'Test request' } });
 
     // Submit the form
-    const submitButton = screen.getByText('Start Lead Qualification Call');
+    const submitButton = screen.getByText('Submit Lead Qualification Form');
     fireEvent.click(submitButton);
 
     // Should not show validation error for request
@@ -278,24 +280,24 @@ describe('LeadQualificationModal', () => {
       />
     );
 
-    // Clear the name field to trigger validation error
-    const nameInput = screen.getByDisplayValue('John Doe');
-    fireEvent.change(nameInput, { target: { value: '' } });
+    // Clear the first name field to trigger validation error
+    const firstNameInput = screen.getByDisplayValue('John');
+    fireEvent.change(firstNameInput, { target: { value: '' } });
 
     // Submit the form
-    const submitButton = screen.getByText('Start Lead Qualification Call');
+    const submitButton = screen.getByText('Submit Lead Qualification Form');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Name is required')).toBeInTheDocument();
+      expect(screen.getByText('First name is required')).toBeInTheDocument();
     });
 
     // Start typing in the name field
-    fireEvent.change(nameInput, { target: { value: 'J' } });
+    fireEvent.change(firstNameInput, { target: { value: 'J' } });
 
     // Error should be cleared
     await waitFor(() => {
-      expect(screen.queryByText('Name is required')).not.toBeInTheDocument();
+      expect(screen.queryByText('First name is required')).not.toBeInTheDocument();
     });
   });
 });

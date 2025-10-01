@@ -7,6 +7,18 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/__tests__/setup.ts', './src/__tests__/vitest-setup.ts'],
+    silent: true,
+    onConsoleLog(log, type) {
+      if (type === 'stderr' && log.includes('Warning:')) {
+        return false; // Suppress React warnings
+      }
+      if (log.includes('App component rendering') || 
+          log.includes('Form data being sent') ||
+          log.includes('Demo started:')) {
+        return false; // Suppress debug logs
+      }
+      return true;
+    },
     coverage: {
       reporter: ['text', 'json', 'html'],
       threshold: {
