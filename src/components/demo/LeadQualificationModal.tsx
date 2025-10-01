@@ -60,6 +60,8 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [responseText, setResponseText] = useState('');
   const [hasModalBeenOpened, setHasModalBeenOpened] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('Submitting form data to lead qualification agent...');
+  const [agentStatus, setAgentStatus] = useState('');
 
   // Pre-populate form with user profile data and generate runId
   useEffect(() => {
@@ -83,6 +85,11 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
         website: '' // Always reset honeypot
       }));
       setSubmissionResult(null); // Reset submission result
+      
+      // Reset status fields
+      setAgentStatus('');
+      setStatusMessage('Submitting form data to lead qualification agent...');
+      
       setHasModalBeenOpened(true);
     } else if (!isOpen) {
       // Reset the flag when modal is closed
@@ -171,13 +178,24 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
     }
 
     setIsSubmitting(true);
+    setStatusMessage('Submitting form data to lead qualification agent...');
+    
+    // Set up timeout handling
+    const timeoutId = setTimeout(() => {
+      if (isSubmitting) {
+        setStatusMessage('Request timed out. Please try again or contact us directly.');
+        setTimeout(() => {
+          setIsSubmitting(false);
+        }, 3000); // Show timeout message for 3 seconds
+      }
+    }, 60000); // 60 second timeout
     
     try {
       // Debug: Log the form data being sent
       console.log('Form data being sent:', formData);
       
       // Send form data directly to n8n webhook (no authentication required)
-      const response = await fetch('/.netlify/functions/lead-qualification', {
+      const response = await fetch('/.netlify/functions/lead-qualification-background', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -214,18 +232,37 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
 
       // Handle n8n response
       if (result.n8nResponse) {
-        const { qualified, message } = result.n8nResponse;
+        const { qualified, statusMessage, message, messsage, output } = result.n8nResponse;
+        
+        // Check if this is a periodic update (has statusMessage but no final result)
+        const updateMessage = statusMessage || message || messsage;
+        if (updateMessage && !qualified && !output) {
+          // Update the status and status message in the submission modal
+          if (result.status) {
+            setAgentStatus(result.status);
+          }
+          setStatusMessage(updateMessage);
+          return; // Don't close the modal, just update the message
+        }
+        
+        // This is the final response
+        clearTimeout(timeoutId);
+        setIsSubmitting(false);
+        
         setSubmissionResult({
           qualified: qualified || false,
-          message: message || (qualified ? 'Form submitted... lead qualified' : 'Lead not qualified for Symbolic AI'),
+          message: updateMessage || output || (qualified ? 'Form submitted... lead qualified' : 'Lead not qualified for Symbolic AI'),
           runId: result.runId
         });
         
         // Show response modal with the n8n response text
-        setResponseText(message || 'No response message received');
+        setResponseText(updateMessage || output || 'No response message received');
         setShowResponseModal(true);
       } else {
         // Fallback if n8n doesn't return expected format
+        clearTimeout(timeoutId);
+        setIsSubmitting(false);
+        
         setSubmissionResult({
           qualified: false,
           message: 'Form submitted successfully',
@@ -239,9 +276,12 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
 
     } catch (error) {
       console.error('Form submission error:', error);
-      alert(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
+      setStatusMessage('An error occurred. Please try again or contact us directly.');
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 3000); // Show error message for 3 seconds
     } finally {
-      setIsSubmitting(false);
+      clearTimeout(timeoutId);
     }
   };
 
@@ -579,6 +619,43 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
         </div>
       </div>
       </div>
+
+      {/* Submission Modal */}
+      {isSubmitting && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[10000] p-4"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <div 
+            className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-md w-full"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-orange-500/20">
+              <div className="flex items-center">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 mr-3">
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                </div>
+                <h2 className="text-xl font-semibold text-white">Sales Agent</h2>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="bg-gray-800/50 border border-gray-600/50 rounded-lg p-4">
+                {agentStatus && (
+                  <p className="text-orange-400 text-center font-medium mb-2">
+                    {agentStatus}
+                  </p>
+                )}
+                <p className="text-gray-300 text-center">
+                  {statusMessage}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Response Modal */}
       {showResponseModal && (

@@ -31,6 +31,12 @@
   # Directory for Netlify Functions
   directory = "netlify/functions"
 
+[functions."lead-qualification-background"]
+  timeout = 900
+
+[functions."chatbot"]
+  timeout = 30
+
 [context.dev.environment]
   # Allow external API calls
   NETLIFY_DEV_EXTERNAL = "true"

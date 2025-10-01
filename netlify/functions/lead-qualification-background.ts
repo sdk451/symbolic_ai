@@ -116,7 +116,7 @@ export const handler: Handler = async (event, context) => {
       });
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout after 30 seconds')), 30000)
+        setTimeout(() => reject(new Error('Request timeout after 60 seconds')), 60000)
       );
       
       console.log('Starting fetch request...');
@@ -173,7 +173,26 @@ export const handler: Handler = async (event, context) => {
         };
       }
       
-      // Return the n8n response to the frontend
+      // Check if this is a periodic update (has statusMessage field but not final result)
+      const updateMessage = n8nResponse.statusMessage || n8nResponse.message || n8nResponse.messsage;
+      const status = n8nResponse.status;
+      if (updateMessage && !n8nResponse.qualified && !n8nResponse.output) {
+        // This is a periodic update, return it immediately
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            message: updateMessage,
+            status: status,
+            runId: formData.runId,
+            isUpdate: true,
+            n8nResponse
+          })
+        };
+      }
+      
+      // Return the final n8n response to the frontend
       return {
         statusCode: 200,
         headers,
