@@ -35,5 +35,3 @@
   # Allow external API calls
   NETLIFY_DEV_EXTERNAL = "true"
   NETLIFY_DEV_HTTPS = "true"
-  # Allow outbound HTTPS connections
-  NODE_TLS_REJECT_UNAUTHORIZED = "0"
