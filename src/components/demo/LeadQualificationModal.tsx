@@ -230,50 +230,72 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
         throw new Error('Invalid JSON response from server');
       }
 
-      // Handle n8n response
-      if (result.n8nResponse) {
-        const { qualified, statusMessage, message, messsage, output } = result.n8nResponse;
+      // Form submitted successfully, now poll for status updates
+      if (result.runId) {
+        setStatusMessage('Form submitted successfully. Waiting for status updates...');
         
-        // Check if this is a periodic update (has statusMessage but no final result)
-        const updateMessage = statusMessage || message || messsage;
-        if (updateMessage && !qualified && !output) {
-          // Update the status and status message in the submission modal
-          if (result.status) {
-            setAgentStatus(result.status);
+        // Start polling for status updates
+        const pollForStatus = async () => {
+          try {
+            const statusResponse = await fetch(`/.netlify/functions/lead-qualification-get-status?runId=${result.runId}`);
+            
+            if (statusResponse.ok) {
+              const statusResult = await statusResponse.json();
+              
+              if (statusResult.success) {
+                // Update the status display
+                if (statusResult.status) {
+                  setAgentStatus(statusResult.status);
+                }
+                setStatusMessage(statusResult.statusMessage || 'Processing...');
+                
+                // Check if this is the final result
+                if (statusResult.qualified !== undefined || statusResult.output) {
+                  // Final result received
+                  clearTimeout(timeoutId);
+                  setIsSubmitting(false);
+                  
+                  setSubmissionResult({
+                    qualified: statusResult.qualified || false,
+                    message: statusResult.output || statusResult.statusMessage || (statusResult.qualified ? 'Lead qualified!' : 'Lead not qualified'),
+                    runId: result.runId
+                  });
+                  
+                  // Show response modal with the final result
+                  setResponseText(statusResult.output || statusResult.statusMessage || 'No response message received');
+                  setShowResponseModal(true);
+                } else {
+                  // Continue polling
+                  setTimeout(pollForStatus, 3000);
+                }
+              } else {
+                // Status not found yet, continue polling
+                setTimeout(pollForStatus, 3000);
+              }
+            } else {
+              // Error getting status, continue polling
+              setTimeout(pollForStatus, 3000);
+            }
+          } catch (error) {
+            console.error('Error polling status:', error);
+            // Continue polling even on error
+            setTimeout(pollForStatus, 3000);
           }
-          setStatusMessage(updateMessage);
-          
-          // For now, just display the update and wait for the function to complete
-          // The function should handle multiple responses internally
-          
-          return; // Don't close the modal, just update the message
-        }
+        };
         
-        // This is the final response
-        clearTimeout(timeoutId);
-        setIsSubmitting(false);
-        
-        setSubmissionResult({
-          qualified: qualified || false,
-          message: updateMessage || output || (qualified ? 'Form submitted... lead qualified' : 'Lead not qualified for Symbolic AI'),
-          runId: result.runId
-        });
-        
-        // Show response modal with the n8n response text
-        setResponseText(updateMessage || output || 'No response message received');
-        setShowResponseModal(true);
+        // Start polling after a short delay
+        setTimeout(pollForStatus, 2000);
       } else {
-        // Fallback if n8n doesn't return expected format
+        // Fallback if no runId
         clearTimeout(timeoutId);
         setIsSubmitting(false);
         
         setSubmissionResult({
           qualified: false,
           message: 'Form submitted successfully',
-          runId: result.runId
+          runId: result.runId || 'unknown'
         });
         
-        // Show response modal with fallback message
         setResponseText('Form submitted successfully');
         setShowResponseModal(true);
       }

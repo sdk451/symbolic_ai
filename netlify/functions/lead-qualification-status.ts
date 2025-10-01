@@ -1,18 +1,23 @@
-// Netlify Functions handler type
-interface Handler {
-  (event: any, context: any): Promise<{
-    statusCode: number;
-    headers: Record<string, string>;
-    body: string;
-  }>;
+import { Handler } from '@netlify/functions';
+import { createSupabaseClient } from './lib/core';
+
+interface StatusUpdate {
+  runId: string;
+  status: string;
+  statusMessage: string;
+  qualified?: boolean;
+  output?: string;
+  callSummary?: string;
+  callNotes?: string;
+  timestamp?: string;
 }
 
-export const handler: Handler = async (event, context) => {
+export const handler: Handler = async (event) => {
   // Set CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Content-Type': 'application/json'
   };
 
@@ -25,76 +30,99 @@ export const handler: Handler = async (event, context) => {
     };
   }
 
-  // Only allow GET requests
-  if (event.httpMethod !== 'GET') {
+  if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
       headers,
-      body: JSON.stringify({
-        error: 'Method not allowed',
-        message: 'Only GET requests are allowed',
-        code: 'METHOD_NOT_ALLOWED'
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
+  // Check for API key authentication
+  const apiKey = event.headers['x-api-key'] || event.headers['X-Api-Key'];
+  const expectedApiKey = 'symbo0l!cai^123@z';
+  
+  if (!apiKey || apiKey !== expectedApiKey) {
+    console.log('Unauthorized access attempt - missing or invalid API key');
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid API key required'
       })
     };
   }
 
   try {
-    // Get runId from query parameters
-    const { runId } = event.queryStringParameters || {};
+    // Parse the incoming status update
+    const statusUpdate: StatusUpdate = JSON.parse(event.body || '{}');
     
-    if (!runId) {
+    console.log('Received status update:', statusUpdate);
+
+    // Validate required fields
+    if (!statusUpdate.runId || !statusUpdate.status || !statusUpdate.statusMessage) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({
-          error: 'Missing runId',
-          message: 'runId query parameter is required',
-          code: 'MISSING_RUN_ID'
+        body: JSON.stringify({ 
+          error: 'Missing required fields: runId, status, statusMessage' 
         })
       };
     }
 
-    // For now, we'll simulate periodic updates
-    // In a real implementation, this would check a database or cache for the latest status
-    const statuses = [
-      "Submitting form data to lead qualification agent...",
-      "Analyzing company information...",
-      "Researching company background...",
-      "Evaluating lead qualification criteria...",
-      "Generating personalized response...",
-      "Finalizing lead qualification assessment..."
-    ];
+    // Create Supabase client
+    const supabase = createSupabaseClient();
 
-    // Simulate progress based on runId timestamp
-    const runTimestamp = parseInt(runId.split('_')[1]);
-    const elapsed = Date.now() - runTimestamp;
-    const progressIndex = Math.min(Math.floor(elapsed / 3000), statuses.length - 1);
-    
-    const currentStatus = statuses[progressIndex];
-    const isComplete = progressIndex >= statuses.length - 1;
+    // Store the status update in the database
+    const { data, error } = await supabase
+      .from('lead_qualification_status')
+      .upsert({
+        run_id: statusUpdate.runId,
+        status: statusUpdate.status,
+        status_message: statusUpdate.statusMessage,
+        qualified: statusUpdate.qualified || false,
+        output: statusUpdate.output || null,
+        call_summary: statusUpdate.callSummary || null,
+        call_notes: statusUpdate.callNotes || null,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'run_id'
+      });
+
+    if (error) {
+      console.error('Database error:', error);
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Failed to store status update',
+          details: error.message 
+        })
+      };
+    }
+
+    console.log('Status update stored successfully:', data);
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        success: true,
-        runId,
-        status: currentStatus,
-        isComplete,
-        progress: Math.min((progressIndex + 1) / statuses.length * 100, 100)
+      body: JSON.stringify({ 
+        success: true, 
+        message: 'Status update received and stored',
+        runId: statusUpdate.runId
       })
     };
 
   } catch (error) {
-    console.error('Lead qualification status error:', error);
+    console.error('Error processing status update:', error);
     
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        error: 'Status Error',
-        message: error instanceof Error ? error.message : 'Failed to get lead qualification status',
-        code: 'STATUS_ERROR'
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
       })
     };
   }

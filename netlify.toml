@@ -34,6 +34,12 @@
 [functions."lead-qualification"]
   timeout = 60
 
+[functions."lead-qualification-status"]
+  timeout = 30
+
+[functions."lead-qualification-get-status"]
+  timeout = 30
+
 [functions."chatbot"]
   timeout = 30
 

@@ -176,35 +176,15 @@ export const handler: Handler = async (event, context) => {
         };
       }
       
-      // Check if this is a periodic update (has statusMessage field but not final result)
-      const updateMessage = n8nResponse.statusMessage || n8nResponse.message || n8nResponse.messsage;
-      const status = n8nResponse.status;
-      if (updateMessage && !n8nResponse.qualified && !n8nResponse.output) {
-        // This is a periodic update - return it immediately for the frontend to display
-        console.log('Received periodic update:', { status, updateMessage });
-        
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({
-            success: true,
-            message: updateMessage,
-            status: status,
-            runId: formData.runId,
-            isUpdate: true,
-            n8nResponse
-          })
-        };
-      }
-      
-      // Return the final n8n response to the frontend
+      // The n8n workflow will now handle status updates via the status endpoint
+      // We just return success and let the frontend poll for status updates
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           success: true,
-          message: 'Form submitted successfully',
-          runId: formData.runId,
+          message: 'Form submitted successfully. Status updates will be available shortly.',
+          runId: formData.data.runId,
           n8nResponse
         })
       };
