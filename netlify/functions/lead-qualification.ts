@@ -105,22 +105,25 @@ export const handler: Handler = async (event, context) => {
         'x-api-key': 'symbo0l!cai^123@z'
       });
       
-      // Add timeout using Promise.race with x-api-key authentication
-      const fetchPromise = fetch(webhookConfig.url, {
+      // Add timeout using AbortController with x-api-key authentication
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log('Aborting request due to timeout');
+        controller.abort();
+      }, 60000); // 60 second timeout
+      
+      console.log('Starting fetch request...');
+      const response = await fetch(webhookConfig.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': 'symbo0l!cai^123@z'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
+        signal: controller.signal
       });
       
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout after 60 seconds')), 60000)
-      );
-      
-      console.log('Starting fetch request...');
-      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+      clearTimeout(timeoutId);
       console.log('Fetch request completed');
       
       console.log('Response status:', response.status);
@@ -177,7 +180,9 @@ export const handler: Handler = async (event, context) => {
       const updateMessage = n8nResponse.statusMessage || n8nResponse.message || n8nResponse.messsage;
       const status = n8nResponse.status;
       if (updateMessage && !n8nResponse.qualified && !n8nResponse.output) {
-        // This is a periodic update, return it immediately
+        // This is a periodic update - return it immediately for the frontend to display
+        console.log('Received periodic update:', { status, updateMessage });
+        
         return {
           statusCode: 200,
           headers,
@@ -212,6 +217,12 @@ export const handler: Handler = async (event, context) => {
         stack: webhookError.stack,
         cause: webhookError.cause
       });
+      
+      // Handle abort signal (timeout)
+      if (webhookError.name === 'AbortError') {
+        throw new Error('Request timeout after 60 seconds');
+      }
+      
       throw webhookError;
     }
     

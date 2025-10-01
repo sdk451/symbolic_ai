@@ -195,7 +195,7 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
       console.log('Form data being sent:', formData);
       
       // Send form data directly to n8n webhook (no authentication required)
-      const response = await fetch('/.netlify/functions/lead-qualification-background', {
+      const response = await fetch('/.netlify/functions/lead-qualification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -242,6 +242,10 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
             setAgentStatus(result.status);
           }
           setStatusMessage(updateMessage);
+          
+          // For now, just display the update and wait for the function to complete
+          // The function should handle multiple responses internally
+          
           return; // Don't close the modal, just update the message
         }
         

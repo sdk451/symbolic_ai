@@ -31,8 +31,8 @@
   # Directory for Netlify Functions
   directory = "netlify/functions"
 
-[functions."lead-qualification-background"]
-  timeout = 900
+[functions."lead-qualification"]
+  timeout = 60
 
 [functions."chatbot"]
   timeout = 30
