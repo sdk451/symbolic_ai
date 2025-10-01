@@ -11,16 +11,22 @@ interface LeadQualificationModalProps {
 }
 
 interface LeadFormData extends Record<string, unknown> {
-  name: string;
+  firstname: string;
+  lastname: string;
   email: string;
   phone: string;
+  companywebsite: string;
   request: string;
+  runId: string;
+  website: string;
 }
 
 interface FormErrors extends Record<string, string | undefined> {
-  name?: string;
+  firstname?: string;
+  lastname?: string;
   email?: string;
   phone?: string;
+  companywebsite?: string;
   request?: string;
 }
 
@@ -30,30 +36,59 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
   onCallComplete
 }) => {
   const { profile, user } = useAuth();
-  const { status, startDemo, clearRun } = useDemoExecution();
+  const { status, clearRun } = useDemoExecution();
   
   const [formData, setFormData] = useState<LeadFormData>({
-    name: '',
+    firstname: '',
+    lastname: '',
     email: '',
     phone: '',
-    request: ''
+    companywebsite: 'https://www.yourcompany.com',
+    request: '',
+    runId: '',
+    website: ''
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCallSummary, setShowCallSummary] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<{
+    qualified: boolean;
+    message: string;
+    runId: string;
+  } | null>(null);
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [responseText, setResponseText] = useState('');
+  const [hasModalBeenOpened, setHasModalBeenOpened] = useState(false);
 
-  // Pre-populate form with user profile data
+  // Pre-populate form with user profile data and generate runId
   useEffect(() => {
-    if (profile && isOpen) {
+    if (isOpen && !hasModalBeenOpened) {
+      const runId = `lq_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Split full name into first and last name
+      const fullName = profile?.full_name || '';
+      const nameParts = fullName.trim().split(' ');
+      const firstname = nameParts[0] || '';
+      const lastname = nameParts.slice(1).join(' ') || '';
+      
       setFormData(prev => ({
         ...prev,
-        name: profile.full_name || '',
+        firstname,
+        lastname,
         email: user?.email || '',
-        phone: profile.phone || ''
+        phone: profile?.phone || '',
+        companywebsite: 'https://www.yourcompany.com', // Set default value
+        runId,
+        website: '' // Always reset honeypot
       }));
+      setSubmissionResult(null); // Reset submission result
+      setHasModalBeenOpened(true);
+    } else if (!isOpen) {
+      // Reset the flag when modal is closed
+      setHasModalBeenOpened(false);
     }
-  }, [profile, user, isOpen]);
+  }, [profile, user, isOpen, hasModalBeenOpened]);
 
   // Handle demo status changes
   useEffect(() => {
@@ -86,8 +121,12 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+    if (!formData.firstname.trim()) {
+      newErrors.firstname = 'First name is required';
+    }
+
+    if (!formData.lastname.trim()) {
+      newErrors.lastname = 'Last name is required';
     }
 
     if (!formData.email.trim()) {
@@ -100,6 +139,12 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
       newErrors.phone = 'Phone number is required';
     } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone)) {
       newErrors.phone = 'Please enter a valid phone number';
+    }
+
+    if (!formData.companywebsite.trim()) {
+      newErrors.companywebsite = 'Company website is required';
+    } else if (!/^https?:\/\/.+\..+/.test(formData.companywebsite)) {
+      newErrors.companywebsite = 'Please enter a valid website URL (starting with http:// or https://)';
     }
 
     if (!formData.request.trim()) {
@@ -128,26 +173,73 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
     setIsSubmitting(true);
     
     try {
-      const result = await startDemo('speed-to-lead-qualification', formData);
+      // Debug: Log the form data being sent
+      console.log('Form data being sent:', formData);
       
-      if (!result.success) {
-        // Show more specific error messages
-        if (result.message?.includes('rate limit')) {
-          alert('You have reached the demo execution limit. Please try again later.');
-        } else if (result.message?.includes('authentication')) {
-          alert('Please log in again to continue.');
-        } else {
-          alert(result.message || 'Failed to start demo. Please try again.');
-        }
+      // Send form data directly to n8n webhook (no authentication required)
+      const response = await fetch('/.netlify/functions/lead-qualification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      // Check if response is ok before trying to parse JSON
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`API Error (${response.status}): ${errorText}`);
       }
-    } catch (error) {
-      console.error('Demo start error:', error);
-      // Handle different types of errors
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        alert('Network error. Please check your connection and try again.');
+
+      // Check if response has content
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+
+      if (!responseText) {
+        throw new Error('Empty response from server');
+      }
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        console.error('Response text that failed to parse:', responseText);
+        throw new Error('Invalid JSON response from server');
+      }
+
+      // Handle n8n response
+      if (result.n8nResponse) {
+        const { qualified, message } = result.n8nResponse;
+        setSubmissionResult({
+          qualified: qualified || false,
+          message: message || (qualified ? 'Form submitted... lead qualified' : 'Lead not qualified for Symbolic AI'),
+          runId: result.runId
+        });
+        
+        // Show response modal with the n8n response text
+        setResponseText(message || 'No response message received');
+        setShowResponseModal(true);
       } else {
-        alert('An unexpected error occurred. Please try again.');
+        // Fallback if n8n doesn't return expected format
+        setSubmissionResult({
+          qualified: false,
+          message: 'Form submitted successfully',
+          runId: result.runId
+        });
+        
+        // Show response modal with fallback message
+        setResponseText('Form submitted successfully');
+        setShowResponseModal(true);
       }
+
+    } catch (error) {
+      console.error('Form submission error:', error);
+      alert(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -156,8 +248,16 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
   const handleClose = () => {
     clearRun();
     setShowCallSummary(false);
+    setSubmissionResult(null);
     setErrors({});
+    setShowResponseModal(false);
+    setResponseText('');
     onClose();
+  };
+
+  const handleCloseResponseModal = () => {
+    setShowResponseModal(false);
+    setResponseText('');
   };
 
   if (!isOpen) return null;
@@ -172,7 +272,7 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
         tabIndex={-1}
       >
       <div 
-        className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+        className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -202,71 +302,123 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Name Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <User className="w-4 h-4 inline mr-2" />
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.name ? 'border-red-500' : 'border-gray-600'
-                    }`}
-                    placeholder="Enter your full name"
-                  />
-                  {errors.name && (
-                    <p className="text-red-400 text-sm mt-1 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.name}
-                    </p>
-                  )}
+                {/* Name Fields - Side by Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* First Name Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <User className="w-4 h-4 inline mr-2" />
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.firstname}
+                      onChange={(e) => handleInputChange('firstname', e.target.value)}
+                      className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                        errors.firstname ? 'border-red-500' : 'border-gray-600'
+                      }`}
+                      placeholder="Enter your first name"
+                    />
+                    {errors.firstname && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.firstname}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Last Name Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <User className="w-4 h-4 inline mr-2" />
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.lastname}
+                      onChange={(e) => handleInputChange('lastname', e.target.value)}
+                      className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                        errors.lastname ? 'border-red-500' : 'border-gray-600'
+                      }`}
+                      placeholder="Enter your last name"
+                    />
+                    {errors.lastname && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.lastname}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Email Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <Mail className="w-4 h-4 inline mr-2" />
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.email ? 'border-red-500' : 'border-gray-600'
-                    }`}
-                    placeholder="Enter your email address"
-                  />
-                  {errors.email && (
-                    <p className="text-red-400 text-sm mt-1 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.email}
-                    </p>
-                  )}
+                {/* Contact Fields - Side by Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Email Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <Mail className="w-4 h-4 inline mr-2" />
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                        errors.email ? 'border-red-500' : 'border-gray-600'
+                      }`}
+                      placeholder="Enter your email address"
+                    />
+                    {errors.email && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Phone Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <Phone className="w-4 h-4 inline mr-2" />
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                        errors.phone ? 'border-red-500' : 'border-gray-600'
+                      }`}
+                      placeholder="Enter your phone number"
+                    />
+                    {errors.phone && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.phone}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Phone Field */}
+                {/* Company Website Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <Phone className="w-4 h-4 inline mr-2" />
-                    Phone Number
+                    <MessageSquare className="w-4 h-4 inline mr-2" />
+                    Company Website
                   </label>
                   <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    type="url"
+                    value={formData.companywebsite}
+                    onChange={(e) => handleInputChange('companywebsite', e.target.value)}
                     className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.phone ? 'border-red-500' : 'border-gray-600'
+                      errors.companywebsite ? 'border-red-500' : 'border-gray-600'
                     }`}
-                    placeholder="Enter your phone number"
+                    placeholder="https://www.yourcompany.com"
                   />
-                  {errors.phone && (
+                  {errors.companywebsite && (
                     <p className="text-red-400 text-sm mt-1 flex items-center">
                       <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.phone}
+                      {errors.companywebsite}
                     </p>
                   )}
                 </div>
@@ -293,6 +445,50 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
                     </p>
                   )}
                 </div>
+
+                {/* Invisible Fields */}
+                <input
+                  type="hidden"
+                  name="runId"
+                  value={formData.runId}
+                />
+                <input
+                  type="text"
+                  name="website"
+                  value={formData.website}
+                  onChange={(e) => handleInputChange('website', e.target.value)}
+                  style={{ display: 'none' }}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+
+                {/* Submission Result Display */}
+                {submissionResult && (
+                  <div className={`p-4 rounded-lg border ${
+                    submissionResult.qualified 
+                      ? 'border-green-500/20 bg-green-500/10' 
+                      : 'border-red-500/20 bg-red-500/10'
+                  }`}>
+                    <div className={`flex items-center ${
+                      submissionResult.qualified ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {submissionResult.qualified ? (
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 mr-2" />
+                      )}
+                      <span className="font-medium">{submissionResult.message}</span>
+                    </div>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Run ID: {submissionResult.runId}
+                    </p>
+                    {submissionResult.qualified && (
+                      <p className="text-sm text-gray-300 mt-2">
+                        Our AI agent will call you shortly to discuss your requirements.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Demo Status Display */}
                 {status && (
@@ -341,18 +537,23 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isSubmitting || status?.status === 'running' || status?.status === 'queued'}
+                  disabled={isSubmitting || !!submissionResult}
                   className="w-full py-3 px-6 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  {isSubmitting || status?.status === 'queued' || status?.status === 'running' ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      {status?.status === 'running' ? 'Call in Progress...' : 'Starting Demo...'}
+                      Submitting Form...
+                    </>
+                  ) : submissionResult ? (
+                    <>
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      Form Submitted
                     </>
                   ) : (
                     <>
                       <Phone className="w-5 h-5 mr-2" />
-                      Start Lead Qualification Call
+                      Submit Lead Qualification Form
                     </>
                   )}
                 </button>
@@ -378,6 +579,56 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
         </div>
       </div>
       </div>
+
+      {/* Response Modal */}
+      {showResponseModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[10000] p-4"
+          onClick={handleCloseResponseModal}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <div 
+            className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-orange-500/20">
+              <div className="flex items-center">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 mr-3">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-white">AI Response</h2>
+              </div>
+              <button
+                onClick={handleCloseResponseModal}
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="bg-gray-800/50 border border-gray-600/50 rounded-lg p-4">
+                <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+                  {responseText}
+                </p>
+              </div>
+              
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={handleCloseResponseModal}
+                  className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Portal>
   );
 };

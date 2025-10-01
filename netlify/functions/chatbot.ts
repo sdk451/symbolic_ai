@@ -115,7 +115,7 @@ export const handler: Handler = async (event, context) => {
       console.log('Calling webhook:', webhookConfig.url);
       console.log('Payload:', JSON.stringify(webhookPayload));
       
-      // Add timeout using Promise.race
+      // Add timeout using Promise.race (no auth header for chatbot)
       const fetchPromise = fetch(webhookConfig.url, {
         method: 'POST',
         headers: {

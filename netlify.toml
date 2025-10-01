@@ -17,6 +17,9 @@
   
   # Auto-install dependencies
   autoLaunch = false
+  
+  # Allow external API calls
+  external = true
 
 [[redirects]]
   # Handle client-side routing
@@ -27,3 +30,10 @@
 [functions]
   # Directory for Netlify Functions
   directory = "netlify/functions"
+
+[context.dev.environment]
+  # Allow external API calls
+  NETLIFY_DEV_EXTERNAL = "true"
+  NETLIFY_DEV_HTTPS = "true"
+  # Allow outbound HTTPS connections
+  NODE_TLS_REJECT_UNAUTHORIZED = "0"

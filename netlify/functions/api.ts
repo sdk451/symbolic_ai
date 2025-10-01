@@ -43,6 +43,8 @@ app.onError((err, c) => {
   return c.json(errorResponse, 500);
 });
 
+// Lead qualification endpoint moved to dedicated function file
+
 // POST /api/demos/:demoId/run - Execute a demo
 app.post('/api/demos/:demoId/run', async (c) => {
   try {
@@ -207,6 +209,72 @@ app.post('/api/demos/:demoId/run', async (c) => {
       error: 'Demo Execution Failed',
       message: error instanceof Error ? error.message : 'Unknown error',
       code: 'EXECUTION_ERROR'
+    }, 500);
+  }
+});
+
+// POST /api/lead-qualification/:runId/callback - Handle VAPI call results from n8n
+app.post('/api/lead-qualification/:runId/callback', async (c) => {
+  try {
+    const runId = c.req.param('runId');
+    
+    // Parse request body
+    const body = await c.req.json();
+    
+    // Log the callback for debugging
+    console.log(`Lead qualification callback received for runId: ${runId}`, body);
+    
+    // Extract VAPI call results
+    const { 
+      callId, 
+      duration, 
+      qualificationScore, 
+      summary, 
+      nextSteps,
+      status: callStatus,
+      errorMessage 
+    } = body;
+    
+    // Store the call results (you might want to create a table for this)
+    // For now, we'll just log it and return success
+    console.log('VAPI Call Results:', {
+      runId,
+      callId,
+      duration,
+      qualificationScore,
+      summary,
+      nextSteps,
+      status: callStatus,
+      errorMessage
+    });
+    
+    // You can store this in a database table if needed
+    // const supabase = sbForUser();
+    // await supabase.from('lead_qualification_calls').insert({
+    //   run_id: runId,
+    //   call_id: callId,
+    //   duration,
+    //   qualification_score: qualificationScore,
+    //   summary,
+    //   next_steps: nextSteps,
+    //   status: callStatus,
+    //   error_message: errorMessage,
+    //   created_at: new Date().toISOString()
+    // });
+    
+    return c.json({ 
+      success: true, 
+      message: 'VAPI call results received successfully',
+      runId 
+    });
+    
+  } catch (error) {
+    console.error('Lead qualification callback error:', error);
+    
+    return c.json({
+      error: 'Callback Processing Failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      code: 'CALLBACK_ERROR'
     }, 500);
   }
 });

@@ -17,6 +17,13 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // Proxy /api routes to Netlify Functions
+      '/api': {
+        target: 'http://localhost:8888/.netlify/functions',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+      },
     },
   },
   build: {

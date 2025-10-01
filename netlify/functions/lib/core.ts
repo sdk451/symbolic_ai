@@ -19,6 +19,13 @@ export const getWebhookConfig = (demoId: string) => {
     };
   }
   
+  // For speed-to-lead-qualification, use the production n8n webhook URL
+  if (demoId === 'speed-to-lead-qualification') {
+    return {
+      url: 'https://n8n.srv995431.hstgr.cloud/webhook/symbolicai_enquiry_form'
+    };
+  }
+  
   // For other demos, use default configuration
   return {
     url: withEnv('N8N_WEBHOOK_URL'),
