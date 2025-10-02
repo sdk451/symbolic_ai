@@ -1,5 +1,13 @@
-import { Handler } from '@netlify/functions';
-import { createSupabaseClient } from './lib/core';
+// Netlify Functions handler type
+interface Handler {
+  (event: any, context: any): Promise<{
+    statusCode: number;
+    headers: Record<string, string>;
+    body: string;
+  }>;
+}
+
+// import { createSupabaseClient } from './lib/core';
 
 interface StatusUpdate {
   runId: string;
@@ -71,38 +79,23 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // Create Supabase client
-    const supabase = createSupabaseClient();
+    // For now, just log the status update (database storage disabled for testing)
+    console.log('Status update received and logged:', {
+      runId: statusUpdate.runId,
+      status: statusUpdate.status,
+      statusMessage: statusUpdate.statusMessage,
+      qualified: statusUpdate.qualified,
+      output: statusUpdate.output,
+      callSummary: statusUpdate.callSummary,
+      callNotes: statusUpdate.callNotes,
+      timestamp: new Date().toISOString()
+    });
 
-    // Store the status update in the database
-    const { data, error } = await supabase
-      .from('lead_qualification_status')
-      .upsert({
-        run_id: statusUpdate.runId,
-        status: statusUpdate.status,
-        status_message: statusUpdate.statusMessage,
-        qualified: statusUpdate.qualified || false,
-        output: statusUpdate.output || null,
-        call_summary: statusUpdate.callSummary || null,
-        call_notes: statusUpdate.callNotes || null,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'run_id'
-      });
-
-    if (error) {
-      console.error('Database error:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ 
-          error: 'Failed to store status update',
-          details: error.message 
-        })
-      };
-    }
-
-    console.log('Status update stored successfully:', data);
+    // TODO: Re-enable database storage once environment variables are configured
+    // const supabase = createSupabaseClient();
+    // const { data, error } = await supabase
+    //   .from('lead_qualification_status')
+    //   .upsert({...}, { onConflict: 'run_id' });
 
     return {
       statusCode: 200,

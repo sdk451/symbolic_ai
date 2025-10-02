@@ -1,5 +1,13 @@
-import { Handler } from '@netlify/functions';
-import { createSupabaseClient } from './lib/core';
+// Netlify Functions handler type
+interface Handler {
+  (event: any, context: any): Promise<{
+    statusCode: number;
+    headers: Record<string, string>;
+    body: string;
+  }>;
+}
+
+// import { createSupabaseClient } from './lib/core';
 
 export const handler: Handler = async (event) => {
   // Set CORS headers
@@ -43,57 +51,29 @@ export const handler: Handler = async (event) => {
 
     console.log('Getting status for runId:', runId);
 
-    // Create Supabase client
-    const supabase = createSupabaseClient();
+    // For now, return a mock response (database storage disabled for testing)
+    // TODO: Re-enable database retrieval once environment variables are configured
+    
+    // Mock response for testing
+    const mockStatus = {
+      runId: runId,
+      status: 'Form submission received',
+      statusMessage: 'Commencing company research...',
+      qualified: false,
+      output: null,
+      callSummary: null,
+      callNotes: null,
+      updatedAt: new Date().toISOString()
+    };
 
-    // Get the latest status for this runId
-    const { data, error } = await supabase
-      .from('lead_qualification_status')
-      .select('*')
-      .eq('run_id', runId)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No rows found
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ 
-            error: 'No status found for this runId',
-            runId: runId
-          })
-        };
-      }
-      
-      console.error('Database error:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ 
-          error: 'Failed to retrieve status',
-          details: error.message 
-        })
-      };
-    }
-
-    console.log('Retrieved status:', data);
+    console.log('Returning mock status:', mockStatus);
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({ 
         success: true,
-        runId: data.run_id,
-        status: data.status,
-        statusMessage: data.status_message,
-        qualified: data.qualified,
-        output: data.output,
-        callSummary: data.call_summary,
-        callNotes: data.call_notes,
-        updatedAt: data.updated_at
+        ...mockStatus
       })
     };
 
