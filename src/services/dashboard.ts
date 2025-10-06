@@ -285,8 +285,13 @@ export const startDemo = async (demoId: string, inputData?: Record<string, unkno
       return { success: false, message: 'Authentication required' };
     }
     
+    // Use dedicated function for appointment scheduler, otherwise use generic API
+    const apiEndpoint = demoId === 'ai-appointment-scheduler' 
+      ? `/.netlify/functions/ai-appointment-scheduler-simple`
+      : `/api/demos/${demoId}/run`;
+    
     // Call the demo execution API
-    const response = await fetch(`/api/demos/${demoId}/run`, {
+    const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -26,6 +26,13 @@ export const getWebhookConfig = (demoId: string) => {
     };
   }
   
+  // For ai-appointment-scheduler, use a dedicated webhook URL
+  if (demoId === 'ai-appointment-scheduler') {
+    return {
+      url: 'https://n8n.srv995431.hstgr.cloud/webhook/ai-appointment-scheduler'
+    };
+  }
+  
   // For other demos, use default configuration
   return {
     url: withEnv('N8N_WEBHOOK_URL'),

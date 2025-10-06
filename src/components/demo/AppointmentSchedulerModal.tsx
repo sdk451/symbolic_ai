@@ -1,45 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { X, Phone, Mail, User, Calendar, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Mail, User, Calendar, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useDemoExecution } from '../../hooks/useDemoExecution';
 import Portal from '../Portal';
+
+// Declare custom VAPI widget element and global API
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'vapi-widget': {
+        'public-key': string;
+        'assistant-id': string;
+        'mode'?: string;
+        'theme'?: string;
+        'base-bg-color'?: string;
+        'accent-color'?: string;
+        'cta-button-color'?: string;
+        'cta-button-text-color'?: string;
+        'border-radius'?: string;
+        'size'?: string;
+        'position'?: string;
+        'title'?: string;
+        'start-button-text'?: string;
+        'end-button-text'?: string;
+        'chat-first-message'?: string;
+        'chat-placeholder'?: string;
+        'voice-show-transcript'?: string;
+        'consent-required'?: string;
+      };
+    }
+  }
+  
+  interface Window {
+    Vapi?: {
+      start: (config: { assistantId: string; publicKey: string }) => void;
+    };
+  }
+}
 
 interface AppointmentSchedulerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAppointmentScheduled?: (result: any) => void;
 }
 
 interface AppointmentFormData extends Record<string, unknown> {
   name: string;
-  phone: string;
   email: string;
-  requestedTime?: string;
 }
 
 interface FormErrors extends Record<string, string | undefined> {
   name?: string;
-  phone?: string;
   email?: string;
 }
 
 const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
   isOpen,
-  onClose,
-  onAppointmentScheduled
+  onClose
 }) => {
   const { profile, user } = useAuth();
-  const { status, startDemo, clearRun } = useDemoExecution();
   
   const [formData, setFormData] = useState<AppointmentFormData>({
     name: '',
-    phone: '',
-    email: '',
-    requestedTime: ''
+    email: ''
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Pre-populate form with user profile data
@@ -48,19 +72,59 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
       setFormData(prev => ({
         ...prev,
         name: profile.full_name || '',
-        phone: profile.phone || '',
         email: user?.email || ''
       }));
     }
   }, [profile, user, isOpen]);
 
-  // Handle demo status changes
+  // Load VAPI script when modal opens
   useEffect(() => {
-    if (status?.status === 'succeeded' && status.outputData) {
-      setShowConfirmation(true);
-      onAppointmentScheduled?.(status.outputData);
+    if (isOpen) {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js';
+      script.async = true;
+      script.type = 'text/javascript';
+      document.head.appendChild(script);
+
+      // Add CSS to override VAPI widget positioning
+      const style = document.createElement('style');
+      style.textContent = `
+        vapi-widget,
+        vapi-widget *,
+        [data-vapi-widget],
+        [data-vapi-widget] * {
+          position: relative !important;
+          bottom: auto !important;
+          right: auto !important;
+          left: auto !important;
+          top: auto !important;
+          transform: none !important;
+          float: none !important;
+          clear: both !important;
+        }
+        .vapi-widget-container {
+          position: relative !important;
+          overflow: hidden !important;
+          width: 100% !important;
+          height: auto !important;
+        }
+      `;
+      document.head.appendChild(style);
+
+      return () => {
+        // Cleanup script and style when modal closes
+        const existingScript = document.querySelector('script[src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"]');
+        if (existingScript) {
+          existingScript.remove();
+        }
+        const existingStyle = document.querySelector('style');
+        if (existingStyle && existingStyle.textContent?.includes('vapi-widget')) {
+          existingStyle.remove();
+        }
+      };
     }
-  }, [status, onAppointmentScheduled]);
+  }, [isOpen]);
+
 
   // Focus management
   useEffect(() => {
@@ -82,28 +146,6 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
     };
   }, [isOpen]);
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleInputChange = (field: keyof AppointmentFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -113,43 +155,9 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
     }
   };
 
-  const handleCallMe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
 
-    setIsSubmitting(true);
-    
-    try {
-      const result = await startDemo('ai-appointment-scheduler', formData);
-      
-      if (!result.success) {
-        // Show more specific error messages
-        if (result.message?.includes('rate limit')) {
-          alert('You have reached the demo execution limit. Please try again later.');
-        } else if (result.message?.includes('authentication')) {
-          alert('Please log in again to continue.');
-        } else {
-          alert(result.message || 'Failed to start demo. Please try again.');
-        }
-      }
-    } catch (error) {
-      console.error('Demo start error:', error);
-      // Handle different types of errors
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        alert('Network error. Please check your connection and try again.');
-      } else {
-        alert('An unexpected error occurred. Please try again.');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleClose = () => {
-    clearRun();
     setShowConfirmation(false);
     setErrors({});
     onClose();
@@ -192,10 +200,10 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
           {!showConfirmation ? (
             <>
               <p className="text-gray-300 mb-6">
-                Fill out your contact information and our AI scheduler will call you to find the perfect appointment time.
+                Provide your contact information and click the widget at bottom right of screen to initiate the AI call.
               </p>
 
-              <form onSubmit={handleCallMe} className="space-y-4">
+              <div className="space-y-4">
                 {/* Name Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -206,17 +214,9 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.name ? 'border-red-500' : 'border-gray-600'
-                    }`}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="Enter your full name"
                   />
-                  {errors.name && (
-                    <p className="text-red-400 text-sm mt-1 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.name}
-                    </p>
-                  )}
                 </div>
 
                 {/* Email Field */}
@@ -229,120 +229,38 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.email ? 'border-red-500' : 'border-gray-600'
-                    }`}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="Enter your email address"
                   />
-                  {errors.email && (
-                    <p className="text-red-400 text-sm mt-1 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.email}
-                    </p>
-                  )}
                 </div>
 
-                {/* Phone Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <Phone className="w-4 h-4 inline mr-2" />
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.phone ? 'border-red-500' : 'border-gray-600'
-                    }`}
-                    placeholder="Enter your phone number"
-                  />
-                  {errors.phone && (
-                    <p className="text-red-400 text-sm mt-1 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.phone}
-                    </p>
-                  )}
+
+
+                {/* VAPI Widget - Bottom Right */}
+                <div className="w-full">
+                  <vapi-widget
+                    public-key="38c277f8-2939-4858-b9b2-7f5514bc3215"
+                    assistant-id="1c46cf54-a261-4228-98d3-939d12da3237"
+                    mode="voice"
+                    theme="dark"
+                    base-bg-color="#000000"
+                    accent-color="#884b04"
+                    cta-button-color="#000000"
+                    cta-button-text-color="#ec8d2d"
+                    border-radius="medium"
+                    size="compact"
+                    position="bottom-right"
+                    title="ASSISTANT CALL"
+                    start-button-text="Start"
+                    end-button-text="End Call"
+                    chat-first-message="Hey, How can I help you today?"
+                    chat-placeholder="Type your message..."
+                    voice-show-transcript="true"
+                    consent-required="false"
+                  ></vapi-widget>
                 </div>
+              </div>
 
-                {/* Requested Time Field (Optional) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <Calendar className="w-4 h-4 inline mr-2" />
-                    Preferred Time (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.requestedTime}
-                    onChange={(e) => handleInputChange('requestedTime', e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="e.g., 'morning', 'afternoon', 'next week'"
-                  />
-                </div>
-
-                {/* Demo Status Display */}
-                {status && (
-                  <div className="p-3 rounded-lg border border-orange-500/20 bg-orange-500/10">
-                    {status.status === 'queued' && (
-                      <div className="flex items-center text-blue-400">
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        <span className="text-sm">Scheduling call queued...</span>
-                      </div>
-                    )}
-                    {status.status === 'running' && (
-                      <div className="flex items-center text-yellow-400">
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        <span className="text-sm">AI scheduler is calling you now...</span>
-                      </div>
-                    )}
-                    {status.status === 'failed' && (
-                      <div className="flex items-center text-red-400">
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        <div className="flex-1">
-                          <span className="text-sm block">Scheduling failed</span>
-                          <span className="text-xs text-gray-400">
-                            {status.errorMessage || 'Unknown error occurred'}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => {
-                            clearRun();
-                            setErrors({});
-                          }}
-                          className="ml-2 text-xs bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors"
-                        >
-                          Retry
-                        </button>
-                      </div>
-                    )}
-                    {status.status === 'cancelled' && (
-                      <div className="flex items-center text-gray-400">
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        <span className="text-sm">Scheduling was cancelled</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Call Me Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting || status?.status === 'running' || status?.status === 'queued'}
-                  className="w-full py-3 px-6 bg-gradient-to-r from-purple-500 to-red-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {isSubmitting || status?.status === 'queued' || status?.status === 'running' ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      {status?.status === 'running' ? 'Call in Progress...' : 'Starting Call...'}
-                    </>
-                  ) : (
-                    <>
-                      <Phone className="w-5 h-5 mr-2" />
-                      Call Me to Schedule
-                    </>
-                  )}
-                </button>
-              </form>
             </>
           ) : (
             <div className="text-center">
