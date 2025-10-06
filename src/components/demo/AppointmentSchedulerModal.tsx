@@ -200,7 +200,7 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
           {!showConfirmation ? (
             <>
               <p className="text-gray-300 mb-6">
-                Provide your contact information and click the widget at bottom right of screen to initiate the AI call.
+                Provide your contact information and click the button at bottom right of screen to initiate the AI call.
               </p>
 
               <div className="space-y-4">
@@ -250,7 +250,7 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
                     border-radius="medium"
                     size="compact"
                     position="bottom-right"
-                    title="ASSISTANT CALL"
+                    title="AI ASSISTANT CALL"
                     start-button-text="Start"
                     end-button-text="End Call"
                     chat-first-message="Hey, How can I help you today?"
