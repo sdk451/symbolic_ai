@@ -71,15 +71,11 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
   // Auto-save to localStorage and pre-populate with user data
   useEffect(() => {
     if (isOpen) {
-      const savedData = localStorage.getItem('consultation_form_draft');
-      if (savedData) {
-        try {
-          setFormData(JSON.parse(savedData));
-        } catch (e) {
-          console.error('Error loading saved form data:', e);
-        }
-      } else if (userData) {
-        // Pre-populate with user data if no saved data exists
+      // Always prioritize userData for pre-population
+      if (userData) {
+        console.log('Pre-populating form with userData:', userData);
+        // Clear any existing draft data when using userData
+        localStorage.removeItem('consultation_form_draft');
         setFormData({
           name: userData.name,
           email: userData.email,
@@ -92,6 +88,17 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
           challenge_to_solve: userData.challenge_to_solve,
           company_size: userData.company_size
         });
+      } else {
+        // Fallback to saved data if no userData
+        const savedData = localStorage.getItem('consultation_form_draft');
+        if (savedData) {
+          try {
+            console.log('Loading saved form data:', savedData);
+            setFormData(JSON.parse(savedData));
+          } catch (e) {
+            console.error('Error loading saved form data:', e);
+          }
+        }
       }
       // Focus first input when modal opens
       setTimeout(() => {

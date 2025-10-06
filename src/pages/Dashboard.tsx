@@ -241,7 +241,19 @@ const Dashboard: React.FC = () => {
       {/* Consultation Modal */}
       <ConsultationModal 
         isOpen={isConsultationModalOpen} 
-        onClose={() => setIsConsultationModalOpen(false)} 
+        onClose={() => setIsConsultationModalOpen(false)}
+        userData={{
+          name: profile?.full_name || '',
+          email: user?.email || '',
+          phone: profile?.phone || '',
+          company_name: profile?.organization_name || '',
+          company_website: '',
+          services_of_interest: [],
+          project_timeline: '',
+          estimated_budget: '',
+          challenge_to_solve: '',
+          company_size: '' // Honeypot field - always empty
+        }}
       />
       
       {/* Footer */}
