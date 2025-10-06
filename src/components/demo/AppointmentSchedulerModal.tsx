@@ -239,7 +239,7 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
                 {/* VAPI Widget - Bottom Right */}
                 <div className="w-full">
                   <vapi-widget
-                    public-key="38c277f8-2939-4858-b9b2-7f5514bc3215"
+                    public-key={import.meta.env.VITE_VAPI_PUBLIC_API_KEY}
                     assistant-id="1c46cf54-a261-4228-98d3-939d12da3237"
                     mode="voice"
                     theme="dark"
