@@ -32,7 +32,7 @@
   directory = "netlify/functions"
 
 [functions."lead-qualification"]
-  timeout = 60
+  timeout = 120
 
 [functions."lead-qualification-status"]
   timeout = 30

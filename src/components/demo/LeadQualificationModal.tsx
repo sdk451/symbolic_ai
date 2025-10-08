@@ -57,15 +57,13 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
     message: string;
     runId: string;
   } | null>(null);
-  const [showResponseModal, setShowResponseModal] = useState(false);
   const [responseText, setResponseText] = useState('');
-  const [hasModalBeenOpened, setHasModalBeenOpened] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Submitting form data to lead qualification agent...');
   const [agentStatus, setAgentStatus] = useState('');
 
   // Pre-populate form with user profile data and generate runId
   useEffect(() => {
-    if (isOpen && !hasModalBeenOpened) {
+    if (isOpen) {
       const runId = `lq_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       // Split full name into first and last name
@@ -89,13 +87,8 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
       // Reset status fields
       setAgentStatus('');
       setStatusMessage('Submitting form data to lead qualification agent...');
-      
-      setHasModalBeenOpened(true);
-    } else if (!isOpen) {
-      // Reset the flag when modal is closed
-      setHasModalBeenOpened(false);
     }
-  }, [profile, user, isOpen, hasModalBeenOpened]);
+  }, [profile, user, isOpen]);
 
   // Handle demo status changes
   useEffect(() => {
@@ -234,7 +227,7 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
       if (result.runId) {
         setStatusMessage('Form submitted successfully. Waiting for status updates...');
         
-        // Start polling for status updates
+        // Start polling for status updates with faster polling
         const pollForStatus = async () => {
           try {
             const statusResponse = await fetch(`/.netlify/functions/lead-qualification-get-status?runId=${result.runId}`);
@@ -243,14 +236,14 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
               const statusResult = await statusResponse.json();
               
               if (statusResult.success) {
-                // Update the status display
+                // Update the status display directly in the modal
                 if (statusResult.status) {
                   setAgentStatus(statusResult.status);
                 }
                 setStatusMessage(statusResult.statusMessage || 'Processing...');
                 
-                // Check if this is the final result
-                if (statusResult.qualified !== undefined || statusResult.output) {
+                // Check if this is the final result (only if we have actual output or qualified status from real updates)
+                if (statusResult.output || (statusResult.qualified !== undefined && statusResult.status === 'Done')) {
                   // Final result received
                   clearTimeout(timeoutId);
                   setIsSubmitting(false);
@@ -261,30 +254,36 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
                     runId: result.runId
                   });
                   
-                  // Show response modal with the final result
+                  // Show the final result directly in the modal (no separate AI response modal)
                   setResponseText(statusResult.output || statusResult.statusMessage || 'No response message received');
-                  setShowResponseModal(true);
+                  
+                  // If this is the "Done" status, close modal after 5 seconds
+                  if (statusResult.status === 'Done') {
+                    setTimeout(() => {
+                      onClose(); // Close the lead qualification modal
+                    }, 5000);
+                  }
                 } else {
-                  // Continue polling
-                  setTimeout(pollForStatus, 3000);
+                  // Continue polling with faster interval
+                  setTimeout(pollForStatus, 500);
                 }
               } else {
                 // Status not found yet, continue polling
-                setTimeout(pollForStatus, 3000);
+                setTimeout(pollForStatus, 500);
               }
             } else {
               // Error getting status, continue polling
-              setTimeout(pollForStatus, 3000);
+              setTimeout(pollForStatus, 500);
             }
           } catch (error) {
             console.error('Error polling status:', error);
             // Continue polling even on error
-            setTimeout(pollForStatus, 3000);
+            setTimeout(pollForStatus, 500);
           }
         };
         
         // Start polling after a short delay
-        setTimeout(pollForStatus, 2000);
+        setTimeout(pollForStatus, 500);
       } else {
         // Fallback if no runId
         clearTimeout(timeoutId);
@@ -296,8 +295,7 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
           runId: result.runId || 'unknown'
         });
         
-        setResponseText('Form submitted successfully');
-        setShowResponseModal(true);
+        // Don't set responseText immediately - let the polling show status updates
       }
 
     } catch (error) {
@@ -316,15 +314,10 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
     setShowCallSummary(false);
     setSubmissionResult(null);
     setErrors({});
-    setShowResponseModal(false);
     setResponseText('');
     onClose();
   };
 
-  const handleCloseResponseModal = () => {
-    setShowResponseModal(false);
-    setResponseText('');
-  };
 
   if (!isOpen) return null;
 
@@ -528,79 +521,10 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
                   autoComplete="off"
                 />
 
-                {/* Submission Result Display */}
-                {submissionResult && (
-                  <div className={`p-4 rounded-lg border ${
-                    submissionResult.qualified 
-                      ? 'border-green-500/20 bg-green-500/10' 
-                      : 'border-red-500/20 bg-red-500/10'
-                  }`}>
-                    <div className={`flex items-center ${
-                      submissionResult.qualified ? 'text-green-400' : 'text-red-400'
-                    }`}>
-                      {submissionResult.qualified ? (
-                        <CheckCircle className="w-5 h-5 mr-2" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 mr-2" />
-                      )}
-                      <span className="font-medium">{submissionResult.message}</span>
-                    </div>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Run ID: {submissionResult.runId}
-                    </p>
-                    {submissionResult.qualified && (
-                      <p className="text-sm text-gray-300 mt-2">
-                        Our AI agent will call you shortly to discuss your requirements.
-                      </p>
-                    )}
-                  </div>
-                )}
 
-                {/* Demo Status Display */}
-                {status && (
-                  <div className="p-3 rounded-lg border border-orange-500/20 bg-orange-500/10">
-                    {status.status === 'queued' && (
-                      <div className="flex items-center text-blue-400">
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        <span className="text-sm">Demo queued for execution...</span>
-                      </div>
-                    )}
-                    {status.status === 'running' && (
-                      <div className="flex items-center text-yellow-400">
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        <span className="text-sm">AI agent is calling you now...</span>
-                      </div>
-                    )}
-                    {status.status === 'failed' && (
-                      <div className="flex items-center text-red-400">
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        <div className="flex-1">
-                          <span className="text-sm block">Demo failed</span>
-                          <span className="text-xs text-gray-400">
-                            {status.errorMessage || 'Unknown error occurred'}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => {
-                            clearRun();
-                            setErrors({});
-                          }}
-                          className="ml-2 text-xs bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors"
-                        >
-                          Retry
-                        </button>
-                      </div>
-                    )}
-                    {status.status === 'cancelled' && (
-                      <div className="flex items-center text-gray-400">
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        <span className="text-sm">Demo was cancelled</span>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Submit Button */}
+
                 <button
                   type="submit"
                   disabled={isSubmitting || !!submissionResult}
@@ -683,55 +607,53 @@ const LeadQualificationModal: React.FC<LeadQualificationModalProps> = ({
         </div>
       )}
 
-      {/* Response Modal */}
-      {showResponseModal && (
+      {/* Sales Agent Status Modal - Floating above the form */}
+      {(isSubmitting || agentStatus || responseText) && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[10000] p-4"
-          onClick={handleCloseResponseModal}
-          onMouseDown={(e) => e.preventDefault()}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10001] p-4"
+          onClick={(e) => e.stopPropagation()}
         >
           <div 
-            className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            className="bg-[#1a1a1a] border border-orange-500/20 rounded-lg max-w-lg w-full max-h-[60vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-orange-500/20">
+            <div className="flex items-center justify-between p-4 border-b border-orange-500/20">
               <div className="flex items-center">
                 <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 mr-3">
                   <MessageSquare className="w-6 h-6 text-white" />
                 </div>
-                <h2 className="text-xl font-semibold text-white">AI Response</h2>
+                <h2 className="text-xl font-semibold text-white">Sales Agent Status</h2>
               </div>
-              <button
-                onClick={handleCloseResponseModal}
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="Close modal"
-              >
-                <X className="w-6 h-6" />
-              </button>
             </div>
 
             {/* Content */}
-            <div className="p-6">
-              <div className="bg-gray-800/50 border border-gray-600/50 rounded-lg p-4">
-                <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">
-                  {responseText}
-                </p>
+            <div className="p-4">
+              {agentStatus && (
+                <div className="mb-3">
+                  <span className="text-sm text-gray-400">Status: </span>
+                  <span className="text-sm font-medium text-orange-400">{agentStatus}</span>
+                </div>
+              )}
+              
+              <div className="mb-3">
+                <span className="text-sm text-gray-400">Message: </span>
+                <span className="text-sm text-gray-300">{statusMessage}</span>
               </div>
               
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={handleCloseResponseModal}
-                  className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
+              {responseText && (
+                <div className="mt-4 pt-4 border-t border-gray-600/50">
+                  <span className="text-sm text-gray-400">Final Result: </span>
+                  <p className="text-sm text-gray-300 mt-2 whitespace-pre-wrap leading-relaxed">
+                    {responseText}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
+
     </Portal>
   );
 };

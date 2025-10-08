@@ -8,6 +8,7 @@ interface Handler {
 }
 
 // import { createSupabaseClient } from './lib/core';
+import { getCachedStatus } from './lib/statusCache';
 
 export const handler: Handler = async (event) => {
   // Set CORS headers
@@ -51,31 +52,42 @@ export const handler: Handler = async (event) => {
 
     console.log('Getting status for runId:', runId);
 
-    // For now, return a mock response (database storage disabled for testing)
-    // TODO: Re-enable database retrieval once environment variables are configured
+    // Get the cached status update
+    const cachedStatus = getCachedStatus(runId);
     
-    // Mock response for testing
-    const mockStatus = {
-      runId: runId,
-      status: 'Form submission received',
-      statusMessage: 'Commencing company research...',
-      qualified: false,
-      output: null,
-      callSummary: null,
-      callNotes: null,
-      updatedAt: new Date().toISOString()
-    };
-
-    console.log('Returning mock status:', mockStatus);
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ 
-        success: true,
-        ...mockStatus
-      })
-    };
+    if (cachedStatus) {
+      console.log('Returning cached status:', cachedStatus);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ 
+          success: true,
+          ...cachedStatus
+        })
+      };
+    } else {
+      // No status found yet, return initial status
+      const initialStatus = {
+        runId: runId,
+        status: 'Form submission received',
+        statusMessage: 'Commencing company research...',
+        qualified: false,
+        output: null,
+        callSummary: null,
+        callNotes: null,
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log('No cached status found, returning initial status:', initialStatus);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ 
+          success: true,
+          ...initialStatus
+        })
+      };
+    }
 
   } catch (error) {
     console.error('Error retrieving status:', error);

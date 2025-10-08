@@ -8,6 +8,8 @@ interface Handler {
 }
 
 // import { createSupabaseClient } from './lib/core';
+import { cacheStatusUpdate } from './lib/statusCache';
+import { broadcastStatusUpdate } from './lead-qualification-sse';
 
 interface StatusUpdate {
   runId: string;
@@ -79,23 +81,11 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // For now, just log the status update (database storage disabled for testing)
-    console.log('Status update received and logged:', {
-      runId: statusUpdate.runId,
-      status: statusUpdate.status,
-      statusMessage: statusUpdate.statusMessage,
-      qualified: statusUpdate.qualified,
-      output: statusUpdate.output,
-      callSummary: statusUpdate.callSummary,
-      callNotes: statusUpdate.callNotes,
-      timestamp: new Date().toISOString()
-    });
-
-    // TODO: Re-enable database storage once environment variables are configured
-    // const supabase = createSupabaseClient();
-    // const { data, error } = await supabase
-    //   .from('lead_qualification_status')
-    //   .upsert({...}, { onConflict: 'run_id' });
+    // Cache the status update for real-time display
+    cacheStatusUpdate(statusUpdate);
+    
+    // Broadcast the update to connected SSE clients
+    broadcastStatusUpdate(statusUpdate);
 
     return {
       statusCode: 200,
