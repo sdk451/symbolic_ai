@@ -1,0 +1,95 @@
+Frequently Asked Questions - Symbolic AI
+1. What does Symbolic AI do?
+Symbolic AI is an AI Solutions Agency that helps businesses grow revenue and streamline
+operations by automating repetitive tasks, optimizing workflows, and integrating smart AI tools
+into their daily processes.
+Symbolic AI provides a variety of AI services covering AI consultancy, AI education and AI
+solution implementation, specifically
+- AI opportunity assessments: a 2-4 week review of your business to identify the best AI
+opportunities with the highest return on investment
+- AI solution implementation across any facet of your business
+- AI advisory: providing advice, strategy and technology leadership on AI transformation for
+businesses or teams
+- AI training, coaching and education for individuals, businesses and teams
+2. What types of tasks can be automated?
+We can automate a wide range of tasks including data entry, email marketing, CRM updates,
+lead generation, customer support, invoice processing, appointment scheduling, and more.
+3. Do I need technical knowledge to use your services?
+No technical expertise is required. We handle all the backend configuration, and we provide
+simple, user-friendly interfaces for you to monitor and manage your automated workflows.
+4. Which industries do you serve?
+Symbolic AI works with clients across various sectors including e-commerce, SaaS, real estate,
+healthcare, finance, and recruitment, among others.
+5. How do you ensure data privacy and security?
+We prioritize security and adhere to strict data protection protocols. We use encrypted
+connections, comply with GDPR and relevant privacy laws, and work with secure platforms and
+tools.
+6. What tools and platforms do you integrate with?
+We integrate with popular platforms like n8n, Zapier, Make (Integromat), Slack, Airtable, Notion,
+Salesforce, HubSpot, Gmail, Google Sheets, and many more.
+7. How much does it cost to work with Symbolic AI?
+Pricing varies depending on the service requested and the complexity and volume of
+automation. We offer custom packages tailored to your business needs. Contact us for a free
+consultation and quote.
+8. Can I get a free audit or consultation?
+Yes! We offer a free thirty minute discovery call to assess your current processes and identify
+automation opportunities with no obligation.
+9. What makes Symbolic AI different from other automation agencies?
+Our blend of strategic insight, consulting experience, no-code/low-code mastery, and AI
+expertise allows us to deliver not just automation, but intelligent, scalable solutions that grow
+with your business.
+10. How do I get started?
+Simply fill out our contact form or book a free consultation. We'll take it from there with a
+discovery session to understand your goals and start mapping your automation journey.
+11. How can I contact Symbolic AI?
+You can reach us via email at contact@symbolicenterprises.com or call us at +61 (4) 38 303
+309. We're available Monday to Friday, 9 AM - 6 PM (CET).
+12. Do you offer ongoing support and maintenance?
+Yes. We provide ongoing support packages to monitor, maintain, and optimize your automated
+workflows. Our team is always available to troubleshoot issues or upgrade systems as your
+business evolves.
+13. Is there a minimum contract or commitment?
+We offer flexible engagement models. While some clients opt for one-time setups, many
+choose monthly retainers or project-based contracts. We'll work with you to find what best fits
+your needs.
+14. How is pricing structured?
+Our pricing is custom and depends on the services requested and the scope of automation.
+Typical pricing models include:
+• One-time setup fees for standalone automation projects
+• Monthly retainers for ongoing services
+• Performance-based pricing for revenue-generating automations (e.g., lead gen)
+We'll provide a clear, tailored quote after a free discovery call.
+15. Do you offer refunds or satisfaction guarantees?
+Yes. We aim for complete client satisfaction. If you're unhappy with the service within the first
+14 days of a project, we offer a partial refund or free adjustments based on the situation.
+16. Where is Symbolic AI based?
+Symbolic AI operates remotely with a core team based in Melbourne Australia. We work with
+clients globally and adjust to your time zone for meetings and support.
+17. Can you train my team to use the automated systems?
+Absolutely. We provide hands-on training, documentation, and video tutorials to ensure your
+team is confident using and managing the systems we implement.
+18. What's the typical timeline for a project?
+Project duration varies based on complexity, but most automations take between 2 to 4 weeks
+from planning to deployment.
+19. Do you offer white-label or agency partnership?
+Yes! We collaborate with marketing agencies, offering white-label automation solutions under
+your brand.
+20. Where can I see case studies or client success stories?
+We can provide case studies and client success stories for a variety of solutions and businesses
+across different industries, ranging from service businesses like real estate and legal to digital
+including start up an ecommerce. Please reach out and book a free discovery call.
+21. Appointment Types
+- Discovery: An initial consultation to explore how AI can help you or your business (30-45
+minutes)
+- AI Skills Coaching: An appointment for coaching or advising an individual on how to use AI in
+their work or personal life (60 minutes)
+- AI Opportunity Assessment: A consultation to begin a business review to identify high value
+ROI AI soutions (60 minutes)
+- AI Solutions: A consultation to discuss implementing AI solutions (45-60 minutes)
+- CTO Advisory: A consultation to discuss ongoing fractional CTO or AI advisory services for
+your business (45-60 minutes)
+- Business hours: Monday-Friday 9am-5pm
+- Based in Melbourne Australia, but can work remotely with overseas businesses as needed
+- Symbolic AI's founder and principal consultant is Simon Kaufmann
+- Symbolic AI has partnerships will several large AI solution implementers if a customer
+needs a large team
