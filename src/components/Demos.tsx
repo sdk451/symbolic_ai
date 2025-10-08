@@ -18,7 +18,7 @@ const Demos = () => {
     {
       icon: MessageCircle,
       title: 'Customer Service Chatbot',
-      description: 'Our intelligent agent handles customer inquiries with human-like responses',
+      description: 'Our AI customer service agent handles inquiries with human-like responses',
       steps: [
         'Start a conversation with the AI',
         'Explore company knowledge base and FAQ',
@@ -34,8 +34,8 @@ const Demos = () => {
       description: 'Try our AI-powered scheduling system that manages appointments intelligently',
       steps: [
         'Request an appointment over the phone',
-        'Listen to AI check availability',
-        'Hear automatic calendar suggestions',
+        'Listen to AI check and confirm availability',
+        'AI provides alternate calendar suggestions',
         'Receive confirmation and reminders'
       ],
       demoUrl: '#demo-scheduler',

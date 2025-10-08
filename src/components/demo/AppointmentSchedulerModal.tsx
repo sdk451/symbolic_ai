@@ -42,13 +42,15 @@ declare global {
 interface AppointmentSchedulerModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAppointmentScheduled?: (result: any) => void;
 }
 
 
 
 const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
   isOpen,
-  onClose
+  onClose,
+  onAppointmentScheduled
 }) => {
   const { profile, user } = useAuth();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -102,6 +104,14 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
       `;
       document.head.appendChild(style);
 
+      // Add event listener for appointment completion
+      const handleAppointmentComplete = () => {
+        handleAppointmentScheduled();
+      };
+
+      // Listen for custom events from VAPI widget
+      document.addEventListener('vapi-appointment-scheduled', handleAppointmentComplete);
+
       return () => {
         // Cleanup script and style when modal closes
         const existingScript = document.querySelector('script[src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"]');
@@ -112,9 +122,11 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
         if (existingStyle && existingStyle.textContent?.includes('vapi-widget')) {
           existingStyle.remove();
         }
+        // Remove event listener
+        document.removeEventListener('vapi-appointment-scheduled', handleAppointmentComplete);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, onAppointmentScheduled]);
 
   // Focus management
   useEffect(() => {
@@ -140,6 +152,18 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
   const handleClose = () => {
     setShowConfirmation(false);
     onClose();
+  };
+
+  const handleAppointmentScheduled = () => {
+    setShowConfirmation(true);
+    // Call the callback with appointment data
+    if (onAppointmentScheduled) {
+      onAppointmentScheduled({
+        customerName: customerName,
+        customerEmail: customerEmail,
+        scheduledAt: new Date().toISOString()
+      });
+    }
   };
 
   if (!isOpen) return null;
