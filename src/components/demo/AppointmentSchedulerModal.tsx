@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, User, Calendar, CheckCircle } from 'lucide-react';
+import { X, Calendar, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Portal from '../Portal';
+
 
 // Declare custom VAPI widget element and global API
 declare global {
   namespace JSX {
     interface IntrinsicElements {
       'vapi-widget': {
-        'public-key': string;
-        'assistant-id': string;
+        'public-key'?: string;
+        'assistant-id'?: string;
+        'assistant-overrides'?: string;
         'mode'?: string;
         'theme'?: string;
         'base-bg-color'?: string;
@@ -42,40 +44,30 @@ interface AppointmentSchedulerModalProps {
   onClose: () => void;
 }
 
-interface AppointmentFormData extends Record<string, unknown> {
-  name: string;
-  email: string;
-}
 
-interface FormErrors extends Record<string, string | undefined> {
-  name?: string;
-  email?: string;
-}
 
 const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
   isOpen,
   onClose
 }) => {
   const { profile, user } = useAuth();
-  
-  const [formData, setFormData] = useState<AppointmentFormData>({
-    name: '',
-    email: ''
-  });
-  
-  const [errors, setErrors] = useState<FormErrors>({});
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Pre-populate form with user profile data
-  useEffect(() => {
-    if (profile && isOpen) {
-      setFormData(prev => ({
-        ...prev,
-        name: profile.full_name || '',
-        email: user?.email || ''
-      }));
-    }
-  }, [profile, user, isOpen]);
+  // Create the assistant configuration object with user data
+  const customerFirstName = profile?.full_name?.split(' ')[0] || 'John';
+  const customerName = profile?.full_name || user?.email || 'John Doe';
+  const customerEmail = user?.email || 'john.doe@example.com';
+  
+  // Build the assistant overridesobject
+  const assistantOverridesString = JSON.stringify({
+      "variableValues": {
+        "customerFirstName": customerFirstName,
+        "customerName": customerName,
+        "customerEmail": customerEmail
+      }
+  });
+
+
 
   // Load VAPI script when modal opens
   useEffect(() => {
@@ -125,7 +117,6 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
     }
   }, [isOpen]);
 
-
   // Focus management
   useEffect(() => {
     if (isOpen) {
@@ -147,19 +138,8 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
   }, [isOpen]);
 
 
-  const handleInputChange = (field: keyof AppointmentFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-
-
   const handleClose = () => {
     setShowConfirmation(false);
-    setErrors({});
     onClose();
   };
 
@@ -200,47 +180,17 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
           {!showConfirmation ? (
             <>
               <p className="text-gray-300 mb-6">
-                Provide your contact information and click the button at bottom right of screen to initiate the AI call.
+                Click the start button to initiate the AI call.
               </p>
 
               <div className="space-y-4">
-                {/* Name Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <User className="w-4 h-4 inline mr-2" />
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-
-                {/* Email Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <Mail className="w-4 h-4 inline mr-2" />
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Enter your email address"
-                  />
-                </div>
-
-
-
-                {/* VAPI Widget - Bottom Right */}
+                
+                {/* VAPI Widget */}
                 <div className="w-full">
                   <vapi-widget
                     public-key={import.meta.env.VITE_VAPI_PUBLIC_API_KEY}
                     assistant-id="1c46cf54-a261-4228-98d3-939d12da3237"
+                    assistant-override={assistantOverridesString}
                     mode="voice"
                     theme="dark"
                     base-bg-color="#000000"
