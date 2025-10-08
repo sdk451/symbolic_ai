@@ -33,8 +33,8 @@ export interface DashboardData {
   };
 }
 
-// Mock data for demos - in a real app, this would come from a database
-export const mockDemos: DemoCard[] = [
+// Demo data - in a real app, this would come from a database
+export const demos: DemoCard[] = [
   {
     id: 'speed-to-lead-qualification',
     title: 'AI Lead Qualification Agent',
@@ -52,8 +52,8 @@ export const mockDemos: DemoCard[] = [
   },
   {
     id: 'customer-service-chatbot',
-    title: 'Customer Service Chatbot',
-    description: 'Our intelligent agent handles customer conversations with human-like responses',
+    title: 'AI Customer Service Agent',
+    description: 'Our customer service agent handles conversations with human-like responses',
     icon: 'MessageCircle',
     color: 'from-blue-500 to-purple-600',
     steps: [
@@ -68,13 +68,13 @@ export const mockDemos: DemoCard[] = [
   {
     id: 'ai-appointment-scheduler',
     title: 'AI Appointment Scheduler',
-    description: 'Try our AI-powered scheduling system that manages appointments intelligently',
+    description: 'Try our AI-powered scheduling system that intelligently manages bookings',
     icon: 'Calendar',
     color: 'from-purple-500 to-red-600',
     steps: [
       'Request an appointment over the phone',
-      'Listen to AI check availability',
       'Hear automatic calendar suggestions',
+      'AI checks and confirms availability',
       'Receive confirmation and reminders'
     ],
     demoUrl: '#demo-scheduler',
@@ -155,14 +155,14 @@ const mockActivities: ActivityItem[] = [
 export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): DemoCard[] => {
   if (!personaSegment) {
     // Return all non-locked demos when no persona is specified
-    return mockDemos.filter(demo => !demo.isLocked);
+    return demos.filter(demo => !demo.isLocked);
   }
   
   // Get the customer service chatbot (must be 2nd demo)
-  const chatbotDemo = mockDemos.find(demo => demo.id === 'customer-service-chatbot');
+  const chatbotDemo = demos.find(demo => demo.id === 'customer-service-chatbot');
   
   // Filter other demos that include the specified persona segment (excluding chatbot)
-  const otherDemos = mockDemos.filter(demo => 
+  const otherDemos = demos.filter(demo => 
     demo.id !== 'customer-service-chatbot' && 
     demo.personaSegments.includes(personaSegment) &&
     !demo.isLocked
@@ -176,7 +176,7 @@ export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): Dem
     result.push(otherDemos[0]);
   } else {
     // Fallback to first available demo if no persona-specific demos
-    const fallbackDemo = mockDemos.find(demo => demo.id !== 'customer-service-chatbot' && !demo.isLocked);
+    const fallbackDemo = demos.find(demo => demo.id !== 'customer-service-chatbot' && !demo.isLocked);
     if (fallbackDemo) result.push(fallbackDemo);
   }
   
@@ -190,7 +190,7 @@ export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): Dem
     result.push(otherDemos[1]);
   } else if (otherDemos.length === 1) {
     // If only one other demo, find another suitable demo
-    const additionalDemo = mockDemos.find(demo => 
+    const additionalDemo = demos.find(demo => 
       demo.id !== 'customer-service-chatbot' && 
       demo.id !== otherDemos[0].id && 
       !demo.isLocked
@@ -198,7 +198,7 @@ export const getPersonaBasedDemos = (personaSegment: PersonaSegment | null): Dem
     if (additionalDemo) result.push(additionalDemo);
   } else {
     // If no persona-specific demos, add two more available demos
-    const availableDemos = mockDemos.filter(demo => 
+    const availableDemos = demos.filter(demo => 
       demo.id !== 'customer-service-chatbot' && 
       !demo.isLocked &&
       !result.some(r => r.id === demo.id)
@@ -267,7 +267,7 @@ export const fetchDashboardData = async (personaSegment: PersonaSegment | null):
 };
 
 export const startDemo = async (demoId: string, inputData?: Record<string, unknown>): Promise<{ success: boolean; message: string; runId?: string }> => {
-  const demo = mockDemos.find(d => d.id === demoId);
+  const demo = demos.find(d => d.id === demoId);
   if (!demo) {
     return { success: false, message: 'Demo not found' };
   }

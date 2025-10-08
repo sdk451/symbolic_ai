@@ -5,7 +5,7 @@ import {
   getTeaserContent,
   fetchDashboardData,
   startDemo,
-  mockDemos,
+  demos,
 } from '../../services/dashboard';
 
 // Mock Supabase
@@ -264,9 +264,9 @@ describe('Dashboard Service', () => {
     });
   });
 
-  describe('mockDemos data structure', () => {
+  describe('demos data structure', () => {
     it('has correct structure for all demos', () => {
-      mockDemos.forEach(demo => {
+      demos.forEach(demo => {
         expect(demo).toHaveProperty('id');
         expect(demo).toHaveProperty('title');
         expect(demo).toHaveProperty('description');
@@ -288,7 +288,7 @@ describe('Dashboard Service', () => {
     });
 
     it('has locked demos with teaser text', () => {
-      const lockedDemos = mockDemos.filter(demo => demo.isLocked);
+      const lockedDemos = demos.filter(demo => demo.isLocked);
       
       expect(lockedDemos.length).toBeGreaterThan(0);
       lockedDemos.forEach(demo => {
