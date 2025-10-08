@@ -11,7 +11,7 @@ declare global {
       'vapi-widget': {
         'public-key'?: string;
         'assistant-id'?: string;
-        'assistant-overrides'?: string;
+        'assistant-override'?: string;
         'mode'?: string;
         'theme'?: string;
         'base-bg-color'?: string;
@@ -60,14 +60,13 @@ const AppointmentSchedulerModal: React.FC<AppointmentSchedulerModalProps> = ({
   
   // Build the assistant overridesobject
   const assistantOverridesString = JSON.stringify({
-      "variableValues": {
-        "customerFirstName": customerFirstName,
-        "customerName": customerName,
-        "customerEmail": customerEmail
-      }
+    "variableValues": 
+    {
+        "firstName": customerFirstName,
+        "name": customerName,
+        "email": customerEmail
+    }
   });
-
-
 
   // Load VAPI script when modal opens
   useEffect(() => {
