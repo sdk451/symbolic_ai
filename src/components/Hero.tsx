@@ -70,7 +70,7 @@ const Hero = () => {
         </h1>
         
         <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-          We optimize your business with AI solutions that land clients, and boost revenue in weeks not months
+          We optimize your sales and marketing with AI solutions that land clients and boost revenue in weeks not months
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

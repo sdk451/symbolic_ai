@@ -55,6 +55,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,7 +71,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
 
   // Auto-save to localStorage and pre-populate with user data
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isFormInitialized) {
       // Always prioritize userData for pre-population
       if (userData) {
         console.log('Pre-populating form with userData:', userData);
@@ -86,7 +87,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
           project_timeline: userData.project_timeline,
           estimated_budget: userData.estimated_budget,
           challenge_to_solve: userData.challenge_to_solve,
-          company_size: userData.company_size
+          company_size: '' // Always empty for honeypot
         });
       } else {
         // Fallback to saved data if no userData
@@ -94,18 +95,22 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
         if (savedData) {
           try {
             console.log('Loading saved form data:', savedData);
-            setFormData(JSON.parse(savedData));
+            const parsedData = JSON.parse(savedData);
+            // Always clear the honeypot field when loading saved data
+            parsedData.company_size = '';
+            setFormData(parsedData);
           } catch (e) {
             console.error('Error loading saved form data:', e);
           }
         }
       }
+      setIsFormInitialized(true);
       // Focus first input when modal opens
       setTimeout(() => {
         firstInputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, userData]);
+  }, [isOpen, userData, isFormInitialized]);
 
   useEffect(() => {
     if (isOpen && !isSubmitted) {
@@ -113,11 +118,18 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
     }
   }, [formData, isOpen, isSubmitted]);
 
+  // Reset initialization flag when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsFormInitialized(false);
+    }
+  }, [isOpen]);
+
   // Handle ESC key and focus trap
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose();
+        handleClose(false); // Don't reset form when pressing ESC
       }
       
       // Focus trap
@@ -300,8 +312,8 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
     }
   };
 
-  const handleClose = () => {
-    if (isSubmitted) {
+  const handleClose = (resetForm = false) => {
+    if (isSubmitted || resetForm) {
       setIsSubmitted(false);
       setFormData({
         name: '',
@@ -317,6 +329,10 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
       });
       setErrors({});
     }
+    // Only reset initialization flag if we're resetting the form
+    if (resetForm) {
+      setIsFormInitialized(false);
+    }
     onClose();
   };
 
@@ -326,7 +342,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
     <Portal>
       <div 
         className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-start justify-center p-4 overflow-y-auto"
-        onClick={handleClose}
+        onClick={() => handleClose(false)} // Don't reset form when clicking outside
         onMouseDown={(e) => e.preventDefault()}
         data-modal="consultation"
         tabIndex={-1}
@@ -341,7 +357,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
         <div className="flex items-center justify-between p-6 border-b border-orange-500/20">
           <h2 className="text-2xl font-bold text-orange-500">Book a Consultation</h2>
           <button
-            onClick={handleClose}
+            onClick={() => handleClose(true)} // Reset form when clicking X
             className="text-gray-400 hover:text-orange-400 transition-colors duration-200"
             aria-label="Close modal"
           >
@@ -362,7 +378,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
                 Reference: SYMB-{Date.now().toString().slice(-6)}
               </p>
               <button
-                onClick={handleClose}
+                onClick={() => handleClose(true)} // Reset form when clicking Close after success
                 className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200"
               >
                 Close
@@ -636,7 +652,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose, 
               <div className="flex justify-end space-x-4 pt-4">
                 <button
                   type="button"
-                  onClick={handleClose}
+                  onClick={() => handleClose(true)} // Reset form when clicking Cancel
                   className="px-6 py-3 text-gray-300 hover:text-white transition-colors duration-200"
                 >
                   Cancel

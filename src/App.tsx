@@ -139,7 +139,7 @@ function App() {
           project_timeline: '',
           estimated_budget: '',
           challenge_to_solve: '',
-          company_size: profile?.organization_size || ''
+          company_size: '' // Honeypot field - always empty
         } : undefined}
       />
     </div>

@@ -102,6 +102,40 @@
     <script>
         const AUTH_COOKIE_NAME = 'symbolic_ai_auth_state';
         
+        // Environment detection (matching the new cookies.ts system)
+        function getCookieDomain() {
+            const hostname = window.location.hostname;
+            
+            // For production domain, use the full domain
+            if (hostname === 'www.symbolicenterprises.com' || hostname === 'symbolicenterprises.com') {
+                return '.symbolicenterprises.com'; // Use dot prefix for subdomain support
+            }
+            
+            // For localhost development, don't set domain (browser will use exact hostname)
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return undefined;
+            }
+            
+            // For other domains (like netlify previews), use the current hostname
+            return hostname;
+        }
+        
+        function getEnvironmentInfo() {
+            const hostname = window.location.hostname;
+            const domain = getCookieDomain();
+            
+            let environment = 'unknown';
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                environment = 'development';
+            } else if (hostname.includes('symbolicenterprises.com')) {
+                environment = 'production';
+            } else if (hostname.includes('netlify.app')) {
+                environment = 'preview';
+            }
+            
+            return { hostname, domain, environment };
+        }
+        
         function showStatus(message, type = 'info') {
             const statusDiv = document.getElementById('status');
             statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
@@ -109,13 +143,44 @@
         
         function clearAuthCookie() {
             try {
-                // Clear the cookie by setting it to expire in the past
-                // Use the same path and SameSite settings as the original cookie
-                document.cookie = `${AUTH_COOKIE_NAME}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Lax`;
+                const envInfo = getEnvironmentInfo();
+                const expireDate = 'Thu, 01 Jan 1970 00:00:00 UTC';
+                const currentDomain = getCookieDomain();
+                const hostname = window.location.hostname;
                 
-                // Also try clearing with different domain variations
-                document.cookie = `${AUTH_COOKIE_NAME}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=localhost;SameSite=Lax`;
-                document.cookie = `${AUTH_COOKIE_NAME}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=.localhost;SameSite=Lax`;
+                showStatus(`🍪 Clearing auth cookie in ${envInfo.environment} environment (${envInfo.hostname})...`, 'info');
+                
+                // Build clear attempts based on current environment (matching the new system)
+                const clearAttempts = [
+                    // Current domain (most important)
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;SameSite=Lax${currentDomain ? `;domain=${currentDomain}` : ''}`,
+                    
+                    // Fallback attempts for different environments
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;SameSite=Lax`,
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/`,
+                    
+                    // Localhost variants (for dev)
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=localhost;SameSite=Lax`,
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=.localhost;SameSite=Lax`,
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=127.0.0.1;SameSite=Lax`,
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=.127.0.0.1;SameSite=Lax`,
+                    
+                    // Production domain variants
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=symbolicenterprises.com;SameSite=Lax`,
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=.symbolicenterprises.com;SameSite=Lax`,
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=www.symbolicenterprises.com;SameSite=Lax`,
+                    
+                    // Current hostname variants
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=${hostname};SameSite=Lax`,
+                    `${AUTH_COOKIE_NAME}=;expires=${expireDate};path=/;domain=.${hostname};SameSite=Lax`
+                ];
+                
+                clearAttempts.forEach((attempt, index) => {
+                    document.cookie = attempt;
+                    if (index < 3) { // Only log first few attempts
+                        console.log(`🍪 Clear attempt ${index + 1}: ${attempt}`);
+                    }
+                });
                 
                 // Wait a moment for the cookie to be cleared
                 setTimeout(() => {
@@ -125,11 +190,11 @@
                         .find(row => row.trim().startsWith(`${AUTH_COOKIE_NAME}=`));
                     
                     if (!cookieValue) {
-                        showStatus('✅ Auth cookie cleared successfully!<br>🔄 You can now test the "Get Started" flow again', 'success');
+                        showStatus(`✅ Auth cookie cleared successfully in ${envInfo.environment} environment!<br>🔄 You can now test the "Get Started" flow again`, 'success');
                     } else {
-                        showStatus(`⚠️ Cookie still exists: ${cookieValue}<br>Try refreshing the page or clearing browser cache.`, 'error');
+                        showStatus(`⚠️ Cookie still exists: ${cookieValue}<br>💡 Try refreshing the page or using the Force Clear option.`, 'error');
                     }
-                }, 100);
+                }, 200);
                 
             } catch (error) {
                 showStatus(`❌ Error clearing auth cookie: ${error.message}`, 'error');
@@ -137,57 +202,113 @@
         }
         
         function checkCookieStatus() {
+            const envInfo = getEnvironmentInfo();
             const cookieValue = document.cookie
                 .split(';')
                 .find(row => row.trim().startsWith(`${AUTH_COOKIE_NAME}=`));
             
+            let statusMessage = `🍪 === Cookie Status ===<br>`;
+            statusMessage += `Environment: ${envInfo.environment}<br>`;
+            statusMessage += `Hostname: ${envInfo.hostname}<br>`;
+            statusMessage += `Cookie domain: ${envInfo.domain || 'current hostname'}<br><br>`;
+            
             if (cookieValue) {
                 try {
                     const cookieData = JSON.parse(decodeURIComponent(cookieValue.split('=')[1]));
-                    showStatus(`🍪 Cookie found:<br>• Has Account: ${cookieData.hasAccount}<br>• Email: ${cookieData.email || 'N/A'}<br>• Timestamp: ${new Date(cookieData.timestamp).toLocaleString()}`, 'info');
+                    const ageDays = Math.round((Date.now() - cookieData.timestamp) / (1000 * 60 * 60 * 24));
+                    statusMessage += `🍪 Cookie found:<br>`;
+                    statusMessage += `• Has Account: ${cookieData.hasAccount}<br>`;
+                    statusMessage += `• Email: ${cookieData.email || 'N/A'}<br>`;
+                    statusMessage += `• Created: ${new Date(cookieData.timestamp).toLocaleString()}<br>`;
+                    statusMessage += `• Age: ${ageDays} days`;
+                    showStatus(statusMessage, 'info');
                 } catch (e) {
-                    showStatus(`🍪 Cookie found but couldn't parse data: ${cookieValue}`, 'info');
+                    statusMessage += `🍪 Cookie found but couldn't parse data: ${cookieValue}`;
+                    showStatus(statusMessage, 'error');
                 }
             } else {
-                showStatus('✅ No auth cookie found - you can test the signup flow', 'success');
+                statusMessage += `✅ No auth cookie found - you can test the signup flow`;
+                showStatus(statusMessage, 'success');
             }
         }
         
         function forceClearAuthCookie() {
             try {
+                const envInfo = getEnvironmentInfo();
                 const cookieName = 'symbolic_ai_auth_state';
                 const expireDate = 'Thu, 01 Jan 1970 00:00:00 UTC';
+                const currentDomain = getCookieDomain();
+                const hostname = window.location.hostname;
                 
-                showStatus('🍪 Force clearing auth cookie with multiple attempts...', 'info');
+                showStatus(`☢️ NUCLEAR CLEARING auth cookie in ${envInfo.environment} environment...`, 'info');
                 
-                // Try multiple combinations to ensure cookie is cleared
+                // Try every possible combination (matching the nuclear clear from cookies.ts)
                 const clearAttempts = [
-                    `${cookieName}=;expires=${expireDate};path=/;SameSite=Lax`,
-                    `${cookieName}=;expires=${expireDate};path=/;domain=localhost;SameSite=Lax`,
-                    `${cookieName}=;expires=${expireDate};path=/;domain=.localhost;SameSite=Lax`,
-                    `${cookieName}=;expires=${expireDate};path=/;domain=127.0.0.1;SameSite=Lax`,
-                    `${cookieName}=;expires=${expireDate};path=/;domain=.127.0.0.1;SameSite=Lax`,
+                    // Basic clears
                     `${cookieName}=;expires=${expireDate};path=/`,
+                    `${cookieName}=;expires=${expireDate};path=/;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;SameSite=Strict`,
+                    `${cookieName}=;expires=${expireDate};path=/;SameSite=None`,
+                    
+                    // With localhost domain
                     `${cookieName}=;expires=${expireDate};path=/;domain=localhost`,
-                    `${cookieName}=;expires=${expireDate};path=/;domain=.localhost`
+                    `${cookieName}=;expires=${expireDate};path=/;domain=localhost;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.localhost`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.localhost;SameSite=Lax`,
+                    
+                    // With 127.0.0.1 domain
+                    `${cookieName}=;expires=${expireDate};path=/;domain=127.0.0.1`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=127.0.0.1;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.127.0.0.1`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.127.0.0.1;SameSite=Lax`,
+                    
+                    // With current hostname
+                    `${cookieName}=;expires=${expireDate};path=/;domain=${hostname}`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=${hostname};SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.${hostname}`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.${hostname};SameSite=Lax`,
+                    
+                    // Production domain variants
+                    `${cookieName}=;expires=${expireDate};path=/;domain=symbolicenterprises.com`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=symbolicenterprises.com;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.symbolicenterprises.com`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=.symbolicenterprises.com;SameSite=Lax`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=www.symbolicenterprises.com`,
+                    `${cookieName}=;expires=${expireDate};path=/;domain=www.symbolicenterprises.com;SameSite=Lax`,
+                    
+                    // Current domain (most important)
+                    `${cookieName}=;expires=${expireDate};path=/;SameSite=Lax${currentDomain ? `;domain=${currentDomain}` : ''}`
                 ];
+                
+                console.log(`☢️ Attempting ${clearAttempts.length} different clear combinations...`);
                 
                 clearAttempts.forEach((attempt, index) => {
                     document.cookie = attempt;
-                    console.log(`🍪 Clear attempt ${index + 1}: ${attempt}`);
+                    console.log(`☢️ Clear attempt ${index + 1}: ${attempt}`);
                 });
                 
-                // Check if cookie still exists
+                // Also try to clear from localStorage and sessionStorage just in case
+                try {
+                    localStorage.removeItem('symbolic_ai_auth_state');
+                    sessionStorage.removeItem('symbolic_ai_auth_state');
+                    console.log('☢️ Also cleared from localStorage and sessionStorage');
+                } catch (e) {
+                    console.log('☢️ Could not clear from storage:', e);
+                }
+                
+                // Check if cookie still exists after a delay
                 setTimeout(() => {
                     const cookieValue = document.cookie
                         .split(';')
                         .find(row => row.trim().startsWith(`${cookieName}=`));
                     
                     if (!cookieValue) {
-                        showStatus('✅ Auth cookie successfully cleared!<br>🔄 You can now test the "Get Started" flow again', 'success');
+                        showStatus(`✅ NUCLEAR CLEAR SUCCESSFUL in ${envInfo.environment} environment!<br>🔄 Refresh the page to see the changes`, 'success');
                     } else {
-                        showStatus(`⚠️ Cookie might still exist: ${cookieValue}<br>💡 Try refreshing the page or clearing browser cache`, 'error');
+                        showStatus(`⚠️ NUCLEAR CLEAR FAILED! Cookie still exists: ${cookieValue}<br>💡 Try manually clearing browser cache or using incognito mode`, 'error');
                     }
+                    
+                    console.log('🍪 Current cookies after nuclear clear:', document.cookie);
                 }, 200);
                 
             } catch (error) {
@@ -202,6 +323,8 @@
         
         // Check cookie status on page load
         window.onload = function() {
+            const envInfo = getEnvironmentInfo();
+            console.log(`🍪 Cookie Clear Tool loaded in ${envInfo.environment} environment (${envInfo.hostname})`);
             checkCookieStatus();
         };
     </script>
