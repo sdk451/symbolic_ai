@@ -25,12 +25,16 @@ export const submitConsultationRequest = async (data: ConsultationRequest) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { company_size, ...cleanData } = data;
 
-    // Ensure we have a valid session before making the database call
-    const { data: { session }, error: sessionError } = await (supabase.auth as any).getSession();
-    
-    if (sessionError) {
-      console.error('Session error:', sessionError);
-      throw new Error('Authentication error');
+    // Try to get session (optional for anonymous users)
+    let session = null;
+    try {
+      const { data: { session: currentSession }, error: sessionError } = await (supabase.auth as any).getSession();
+      if (!sessionError) {
+        session = currentSession;
+      }
+    } catch (error) {
+      // Session check failed, continue as anonymous user
+      console.log('🔐 No session found, proceeding as anonymous user');
     }
 
     console.log('🔐 Current session:', session ? 'authenticated' : 'anonymous');
@@ -42,16 +46,6 @@ export const submitConsultationRequest = async (data: ConsultationRequest) => {
       email: session?.user?.email,
       role: session?.user?.role
     });
-
-    // If no session, try to get the current user
-    if (!session) {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        console.error('User error:', userError);
-        throw new Error('Authentication error');
-      }
-      console.log('🔐 Current user:', user ? 'authenticated' : 'anonymous');
-    }
 
     // Log the data we're trying to insert
     console.log('📝 Data to insert:', {

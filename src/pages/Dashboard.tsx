@@ -5,7 +5,8 @@ import DemoCard from '../components/DemoCard';
 import ConsultationCTA from '../components/ConsultationCTA';
 import ConsultationModal from '../components/ConsultationModal';
 import Footer from '../components/Footer';
-import { User, Building2, Crown, Briefcase, GraduationCap, Zap } from 'lucide-react';
+import { authService } from '../services/auth';
+import { User, Building2, Crown, Briefcase, GraduationCap, Zap, LogOut } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user, profile } = useAuth();
@@ -27,6 +28,14 @@ const Dashboard: React.FC = () => {
   const handleBookConsultation = () => {
     // Dispatch event to open consultation modal
     window.dispatchEvent(new CustomEvent('openConsultationModal'));
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const getPersonaIcon = (segment: string | null) => {
@@ -163,6 +172,14 @@ const Dashboard: React.FC = () => {
               <div className="text-sm text-gray-400">
                 Welcome, {profile?.full_name || user?.email}
               </div>
+              <button
+                onClick={handleLogout}
+                className="text-gray-400 hover:text-orange-400 transition-colors duration-200 font-medium flex items-center"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Logout
+              </button>
             </div>
           </div>
         </div>
