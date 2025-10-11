@@ -6,7 +6,7 @@
   publish = "dist"
   
   # Build command - force clean install and build
-  command = "npm cache clean --force && npm install && npm run build"
+  command = "rm -rf node_modules && npm cache clean --force && npm install && npm run build"
 
 [dev]
   # Port for the framework server
