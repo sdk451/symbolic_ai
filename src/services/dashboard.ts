@@ -1,4 +1,5 @@
 import { PersonaSegment } from '../components/PersonaSelector';
+import { supabase } from '../lib/supabase';
 
 export interface DemoCard {
   id: string;
@@ -278,7 +279,6 @@ export const startDemo = async (demoId: string, inputData?: Record<string, unkno
   
   try {
     // Get auth token from Supabase
-    const { supabase } = await import('../lib/supabase') as { supabase: any };
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.access_token) {
@@ -336,7 +336,6 @@ export const getDemoRunStatus = async (runId: string): Promise<{
   message?: string 
 }> => {
   try {
-    const { supabase } = await import('../lib/supabase') as { supabase: any };
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.access_token) {

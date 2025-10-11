@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getDemoRunStatus } from '../services/dashboard';
+import { getDemoRunStatus, startDemo as startDemoService } from '../services/dashboard';
 
 export interface DemoRunStatus {
   id: string;
@@ -53,7 +53,6 @@ export const useDemoExecution = (): UseDemoExecutionReturn => {
     setError(null);
     
     try {
-      const { startDemo: startDemoService } = await import('../services/dashboard');
       const result = await startDemoService(demoId, inputData);
       
       if (result.success && result.runId) {
