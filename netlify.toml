@@ -63,9 +63,3 @@
 
 [context.branch-deploy.environment]
   NODE_ENV = "production"
-
-# Disable Lighthouse plugin to prevent build failures
-[[plugins]]
-  package = "@netlify/plugin-lighthouse"
-  [plugins.inputs]
-    disabled = true
