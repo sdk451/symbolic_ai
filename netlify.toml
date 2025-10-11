@@ -7,9 +7,6 @@
   
   # Build command - install dependencies first, then build
   command = "npm ci && npm run build"
-  
-  # Ensure we have the right Node.js version
-  environment = { NODE_VERSION = "22" }
 
 [dev]
   # Port for the framework server
@@ -54,6 +51,7 @@
 # Configure secrets scanning to ignore Supabase anonymous key
 # (which is designed to be public and safe for client-side use)
 [build.environment]
+  NODE_VERSION = "22"
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY"
 
 # Add environment variables for all contexts
