@@ -5,8 +5,8 @@
   # Directory that contains the deploy-ready HTML files and assets
   publish = "dist"
   
-  # Build command - install dependencies first, then build
-  command = "npm ci && npm run build"
+  # Build command - force clean install and build
+  command = "npm cache clean --force && npm install && npm run build"
 
 [dev]
   # Port for the framework server
